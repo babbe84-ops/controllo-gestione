@@ -138,38 +138,38 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI ---
+# --- DATI GENERALI (ORDINATI: 2026, 2025, 2024) ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
-    "Fatturato 2025": [57401.50, 62787.31, 72682.00, 68541.53, 71101.00, 73161.79, 64458.50, 35609.42, 84284.50, 82004.21, 64778.43, 64324.52],
     "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 0, 0, 0, 0, 0],
+    "Fatturato 2025": [57401.50, 62787.31, 72682.00, 68541.53, 71101.00, 73161.79, 64458.50, 35609.42, 84284.50, 82004.21, 64778.43, 64324.52],
+    "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
 })
 
 df_costi = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Costi 2024": [30359.58, 34197.57, 43005.65, 40156.84, 43703.97, 44361.46, 32676.33, 36758.37, 42287.59, 40908.77, 36832.46, 46703.16],
-    "Costi 2025": [32409.91, 36319.18, 36075.82, 38017.47, 41233.54, 42390.51, 36236.41, 26967.94, 39929.42, 40450.24, 41594.63, 36510.16],
     "Costi 2026": [34104.88, 40913.02, 39960.05, 39848.93, 41854.30, 38761.35, 32574.31, 0, 0, 0, 0, 0],
+    "Costi 2025": [32409.91, 36319.18, 36075.82, 38017.47, 41233.54, 42390.51, 36236.41, 26967.94, 39929.42, 40450.24, 41594.63, 36510.16],
+    "Costi 2024": [30359.58, 34197.57, 43005.65, 40156.84, 43703.97, 44361.46, 32676.33, 36758.37, 42287.59, 40908.77, 36832.46, 46703.16],
 })
 
 df_ore_dirette = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Ore Dirette 2025": [2017.0, 2087.0, 2317.5, 2155.5, 2251.5, 2221.0, 2084.0, 1308.0, 2454.0, 2355.0, 2134.0, 1641.5],
     "Ore Dirette 2026": [1788.0, 2108.5, 2102.5, 2020.5, 2118.5, 2027.0, 1949.0, 0, 0, 0, 0, 0],
+    "Ore Dirette 2025": [2017.0, 2087.0, 2317.5, 2155.5, 2251.5, 2221.0, 2084.0, 1308.0, 2454.0, 2355.0, 2134.0, 1641.5],
 })
 
 df_ore_indirette = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Ore Indirette 2025": [193.0, 137.0, 81.5, 112.5, 155.5, 126.5, 97.5, 65.0, 163.5, 145.5, 124.5, 171.0],
     "Ore Indirette 2026": [156.0, 237.0, 327.0, 222.0, 220.5, 134.0, 188.5, 0, 0, 0, 0, 0],
+    "Ore Indirette 2025": [193.0, 137.0, 81.5, 112.5, 155.5, 126.5, 97.5, 65.0, 163.5, 145.5, 124.5, 171.0],
 })
 
 df_media_oraria = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Media Oraria 2024": [25.98, 27.17, 30.29, 27.78, 28.50, 26.28, 30.74, 27.24, 29.82, 31.52, 27.52, 30.05],
-    "Media Oraria 2025": [25.97, 28.23, 30.30, 30.22, 29.54, 31.17, 29.55, 25.94, 32.20, 32.80, 28.68, 35.49],
     "Media Oraria 2026": [30.13, 31.37, 31.13, 31.31, 27.80, 37.32, 31.10, 0, 0, 0, 0, 0],
+    "Media Oraria 2025": [25.97, 28.23, 30.30, 30.22, 29.54, 31.17, 29.55, 25.94, 32.20, 32.80, 28.68, 35.49],
+    "Media Oraria 2024": [25.98, 27.17, 30.29, 27.78, 28.50, 26.28, 30.74, 27.24, 29.82, 31.52, 27.52, 30.05],
 })
 
 # --- DATI DIPENDENTI 2026 ---
@@ -352,17 +352,17 @@ if sezione == "📈 Dashboard Grafica":
             df_fat,
             pd.DataFrame([{
                 "Mese": "TOTALE",
-                "Fatturato 2024": df_fat["Fatturato 2024"].sum(),
+                "Fatturato 2026": df_fat["Fatturato 2026"].sum(),
                 "Fatturato 2025": df_fat["Fatturato 2025"].sum(),
-                "Fatturato 2026": df_fat["Fatturato 2026"].sum()
+                "Fatturato 2024": df_fat["Fatturato 2024"].sum()
             }])
         ], ignore_index=True)
 
         st.dataframe(
             df_fat_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
-                "Fatturato 2024": "€ {:,.2f}",
+                "Fatturato 2026": "€ {:,.2f}",
                 "Fatturato 2025": "€ {:,.2f}",
-                "Fatturato 2026": "€ {:,.2f}"
+                "Fatturato 2024": "€ {:,.2f}"
             }),
             use_container_width=True
         )
@@ -389,17 +389,17 @@ if sezione == "📈 Dashboard Grafica":
             df_costi,
             pd.DataFrame([{
                 "Mese": "TOTALE",
-                "Costi 2024": df_costi["Costi 2024"].sum(),
+                "Costi 2026": df_costi["Costi 2026"].sum(),
                 "Costi 2025": df_costi["Costi 2025"].sum(),
-                "Costi 2026": df_costi["Costi 2026"].sum()
+                "Costi 2024": df_costi["Costi 2024"].sum()
             }])
         ], ignore_index=True)
 
         st.dataframe(
             df_costi_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
-                "Costi 2024": "€ {:,.2f}",
+                "Costi 2026": "€ {:,.2f}",
                 "Costi 2025": "€ {:,.2f}",
-                "Costi 2026": "€ {:,.2f}"
+                "Costi 2024": "€ {:,.2f}"
             }),
             use_container_width=True
         )
@@ -426,15 +426,15 @@ if sezione == "📈 Dashboard Grafica":
             df_ore_dirette,
             pd.DataFrame([{
                 "Mese": "TOTALE",
-                "Ore Dirette 2025": df_ore_dirette["Ore Dirette 2025"].sum(),
-                "Ore Dirette 2026": df_ore_dirette["Ore Dirette 2026"].sum()
+                "Ore Dirette 2026": df_ore_dirette["Ore Dirette 2026"].sum(),
+                "Ore Dirette 2025": df_ore_dirette["Ore Dirette 2025"].sum()
             }])
         ], ignore_index=True)
 
         st.dataframe(
             df_ore_dir_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
-                "Ore Dirette 2025": "{:,.1f} h",
-                "Ore Dirette 2026": "{:,.1f} h"
+                "Ore Dirette 2026": "{:,.1f} h",
+                "Ore Dirette 2025": "{:,.1f} h"
             }),
             use_container_width=True
         )
@@ -461,15 +461,15 @@ if sezione == "📈 Dashboard Grafica":
             df_ore_indirette,
             pd.DataFrame([{
                 "Mese": "TOTALE",
-                "Ore Indirette 2025": df_ore_indirette["Ore Indirette 2025"].sum(),
-                "Ore Indirette 2026": df_ore_indirette["Ore Indirette 2026"].sum()
+                "Ore Indirette 2026": df_ore_indirette["Ore Indirette 2026"].sum(),
+                "Ore Indirette 2025": df_ore_indirette["Ore Indirette 2025"].sum()
             }])
         ], ignore_index=True)
 
         st.dataframe(
             df_ore_ind_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
-                "Ore Indirette 2025": "{:,.1f} h",
-                "Ore Indirette 2026": "{:,.1f} h"
+                "Ore Indirette 2026": "{:,.1f} h",
+                "Ore Indirette 2025": "{:,.1f} h"
             }),
             use_container_width=True
         )
@@ -496,17 +496,17 @@ if sezione == "📈 Dashboard Grafica":
             df_media_oraria,
             pd.DataFrame([{
                 "Mese": "TOTALE",
-                "Media Oraria 2024": df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean(),
+                "Media Oraria 2026": df_media_oraria["Media Oraria 2026"][df_media_oraria["Media Oraria 2026"] > 0].mean(),
                 "Media Oraria 2025": df_media_oraria["Media Oraria 2025"][df_media_oraria["Media Oraria 2025"] > 0].mean(),
-                "Media Oraria 2026": df_media_oraria["Media Oraria 2026"][df_media_oraria["Media Oraria 2026"] > 0].mean()
+                "Media Oraria 2024": df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean()
             }])
         ], ignore_index=True)
 
         st.dataframe(
             df_media_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
-                "Media Oraria 2024": "€ {:,.2f}",
+                "Media Oraria 2026": "€ {:,.2f}",
                 "Media Oraria 2025": "€ {:,.2f}",
-                "Media Oraria 2026": "€ {:,.2f}"
+                "Media Oraria 2024": "€ {:,.2f}"
             }),
             use_container_width=True
         )
