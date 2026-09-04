@@ -30,7 +30,7 @@ if not st.session_state["authenticated"]:
             st.error("Credenziali non valide")
     st.stop()
 
-# --- CARICAMENTO DATI ---
+# --- CARICAMENTO DATI FATTURATO E COSTI TOTALI ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -149,6 +149,161 @@ df_costi = pd.DataFrame({
     ],
 })
 
+# --- DATI DETTAGLIO DIPENDENTI (MODELLO TABELLA RIASSUNTIVA 2026) ---
+dati_dipendenti = {
+    "MICHELA D'ALSAZIA": {
+        "Costo": [
+            3693.39,
+            3960.66,
+            3857.07,
+            3922.04,
+            3889.52,
+            4007.63,
+            2555.03,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [150.5, 166.5, 172.5, 168.5, 163.0, 168.0, 105.5, 0, 0, 0, 0, 0],
+    },
+    "ANDREA BASSISSI": {
+        "Costo": [
+            2169.70,
+            2337.50,
+            2361.92,
+            2332.02,
+            2406.59,
+            2407.38,
+            1520.40,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [143.5, 160.0, 176.0, 168.0, 158.0, 157.0, 96.0, 0, 0, 0, 0, 0],
+    },
+    "KATIA CASELLI": {
+        "Costo": [
+            3504.50,
+            3749.44,
+            4035.38,
+            4073.36,
+            3925.75,
+            3846.69,
+            2635.19,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [125.0, 140.0, 151.0, 129.5, 137.5, 141.0, 86.0, 0, 0, 0, 0, 0],
+    },
+    "FRANCESCO LANZI": {
+        "Costo": [
+            2949.79,
+            3225.64,
+            3455.40,
+            3518.32,
+            3244.59,
+            3093.37,
+            2944.15,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0],
+    },
+    "LORENZO GUION": {
+        "Costo": [
+            1296.53,
+            1452.13,
+            1912.60,
+            1518.40,
+            1779.25,
+            1801.12,
+            1680.60,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [81.5, 96.0, 106.0, 86.5, 101.5, 101.0, 110.0, 0, 0, 0, 0, 0],
+    },
+    "JESSICA CAMPANINI": {
+        "Costo": [
+            3430.97,
+            3447.45,
+            3523.93,
+            3480.09,
+            3647.24,
+            3701.70,
+            3549.45,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [132.0, 137.5, 158.0, 155.5, 157.5, 159.0, 175.5, 0, 0, 0, 0, 0],
+    },
+    "FRANCESCO RASENTI": {
+        "Costo": [
+            4789.75,
+            5702.35,
+            4906.62,
+            4697.05,
+            6054.25,
+            4722.98,
+            4664.75,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [160.0, 199.0, 193.0, 152.0, 204.0, 179.0, 164.0, 0, 0, 0, 0, 0],
+    },
+    "MATTIA SCANO": {
+        "Costo": [
+            3542.57,
+            3758.97,
+            2634.49,
+            3019.63,
+            3787.61,
+            3779.72,
+            3330.42,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [143.5, 153.5, 72.0, 104.0, 156.5, 150.0, 101.0, 0, 0, 0, 0, 0],
+    },
+}
+
+mesi = [
+    "Gen",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mag",
+    "Giu",
+    "Lug",
+    "Ago",
+    "Set",
+    "Ott",
+    "Nov",
+    "Dic",
+]
+
 # --- INTERFACCIA WEB ---
 st.title("📊 Sintec S.r.l. - Controllo di Gestione")
 
@@ -157,7 +312,7 @@ sezione = st.sidebar.radio(
     "Menu Principale", ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"]
 )
 
-# Pulsante per andare direttamente al Notebook Google
+# Pulsante per aprire il Notebook Google
 st.sidebar.markdown("---")
 st.sidebar.link_button(
     "📓 Apri Notebook Google",
@@ -187,7 +342,6 @@ if sezione == "📈 Dashboard Grafica":
     mol_2025 = tot_f_2025 - tot_c_2025
     diff_mol = mol_sel - mol_2025
 
-    # Visualizzazione KPI
     col1, col2, col3 = st.columns(3)
     col1.metric(
         f"Fatturato Totale {anno_selezionato}",
@@ -207,10 +361,13 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown("---")
-    t1, t2 = st.tabs(["📊 Confronto Fatturato", "👥 Confronto Costi Personale"])
+    t1, t2, t3 = st.tabs([
+        "📊 Confronto Fatturato",
+        "👥 Costi Totali Personale",
+        "📋 Dettaglio Dipendenti (Mese per Mese)",
+    ])
 
     with t1:
-        # Grafico a barre con ETICHETTE DATI VISIBILI
         fig_f = px.bar(
             df_fat,
             x="Mese",
@@ -218,13 +375,12 @@ if sezione == "📈 Dashboard Grafica":
             barmode="group",
             title=f"Confronto Fatturato Mensile: {anno_selezionato} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
-            text_auto=",.0f",  # Mostra il valore formattato sopra la barra
+            text_auto=",.0f",
         )
         fig_f.update_traces(textposition="outside")
         st.plotly_chart(fig_f, use_container_width=True)
 
     with t2:
-        # Grafico a linee con ETICHETTE DATI VISIBILI
         fig_c = px.line(
             df_costi,
             x="Mese",
@@ -239,6 +395,47 @@ if sezione == "📈 Dashboard Grafica":
         )
         fig_c.update_traces(textposition="top center")
         st.plotly_chart(fig_c, use_container_width=True)
+
+    with t3:
+        st.subheader("📋 Tabella Riassuntiva Costi e Ore Dipendenti")
+        dipendente_scelto = st.selectbox(
+            "Seleziona Dipendente:", list(dati_dipendenti.keys())
+        )
+
+        costi_dip = dati_dipendenti[dipendente_scelto]["Costo"]
+        ore_dip = dati_dipendenti[dipendente_scelto]["Ore"]
+
+        # Creazione DataFrame Mese per Mese
+        df_dip = pd.DataFrame({
+            "Mese": mesi,
+            "Costo Totale (€)": costi_dip,
+            "Ore Totali": ore_dip,
+        })
+        df_dip["Costo Orario (€/h)"] = (
+            df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
+        ).fillna(0).round(2)
+
+        # Tabella formattata
+        st.write(f"**Prospetto Mensile 2026 - {dipendente_scelto}**")
+        st.dataframe(
+            df_dip.style.format({
+                "Costo Totale (€)": "€ {:,.2f}",
+                "Ore Totali": "{:,.1f} h",
+                "Costo Orario (€/h)": "€ {:,.2f}",
+            }),
+            use_container_width=True,
+        )
+
+        # Grafico andamento
+        fig_dip = px.bar(
+            df_dip[df_dip["Ore Totali"] > 0],
+            x="Mese",
+            y="Costo Totale (€)",
+            text_auto=",.0f",
+            title=f"Andamento Mensile Costo Totale per {dipendente_scelto}",
+        )
+        fig_dip.update_traces(textposition="outside")
+        st.plotly_chart(fig_dip, use_container_width=True)
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     st.subheader("Assistente Virtuale Sintec")
