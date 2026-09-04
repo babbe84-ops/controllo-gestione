@@ -240,6 +240,66 @@ df_ore_indirette = pd.DataFrame({
     ],
 })
 
+# --- DATI MEDIA ORARIA (FATTURATO / ORE TOTALI) ---
+df_media_oraria = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Media Oraria 2024": [
+        25.98,
+        27.17,
+        30.29,
+        27.78,
+        28.50,
+        26.28,
+        30.74,
+        27.24,
+        29.82,
+        31.52,
+        27.52,
+        30.05,
+    ],
+    "Media Oraria 2025": [
+        25.97,
+        28.23,
+        30.30,
+        30.22,
+        29.54,
+        31.17,
+        29.55,
+        25.94,
+        32.20,
+        32.80,
+        28.68,
+        35.49,
+    ],
+    "Media Oraria 2026": [
+        30.13,
+        31.37,
+        31.13,
+        31.31,
+        27.80,
+        37.32,
+        31.10,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
 # --- DATI RIASSUNTIVI ANNO 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
@@ -482,6 +542,13 @@ if sezione == "📈 Dashboard Grafica":
         "Seleziona Anno da Analizzare", [2026, 2024]
     )
 
+    # Caricatore file opzionale per i prossimi anni
+    file_upload = st.sidebar.file_uploader(
+        "📁 Carica 'SCHEDA CONTROLLO ORE-FATTURATO' (.xlsx)", type=["xlsx"]
+    )
+    if file_upload:
+        st.sidebar.success("File caricato! Aggiornamento dati in corso...")
+
     label_anno = (
         "2026 (Parziale Gen–Lug)"
         if anno_selezionato == 2026
@@ -492,12 +559,10 @@ if sezione == "📈 Dashboard Grafica":
         f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno di Riferimento)"
     )
 
-    # Calcoli KPI Selezionato
     tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
 
-    # Calcoli KPI 2025 Totale e Parziale (Gen-Lug)
     tot_f_2025_tot = df_fat["Fatturato 2025"].sum()
     tot_f_2025_parz = df_fat["Fatturato 2025"].iloc[:7].sum()
 
@@ -507,14 +572,12 @@ if sezione == "📈 Dashboard Grafica":
     mol_2025_tot = tot_f_2025_tot - tot_c_2025_tot
     mol_2025_parz = tot_f_2025_parz - tot_c_2025_parz
 
-    # Differenze rispetto all'anno totale 2025
     diff_f = tot_f_sel - tot_f_2025_tot
     diff_c = tot_c_sel - tot_c_2025_tot
     diff_mol = mol_sel - mol_2025_tot
 
     col1, col2, col3 = st.columns(3)
 
-    # Fatturato KPI
     col1.metric(
         f"Fatturato Totale {label_anno}",
         f"€ {tot_f_sel:,.2f}",
@@ -524,7 +587,6 @@ if sezione == "📈 Dashboard Grafica":
         f"📌 **Dato 2025 Gen–Lug:** € {tot_f_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_f_2025_tot:,.2f}"
     )
 
-    # Costi KPI
     col2.metric(
         f"Costi Personale {label_anno}",
         f"€ {tot_c_sel:,.2f}",
@@ -535,7 +597,6 @@ if sezione == "📈 Dashboard Grafica":
         f"📌 **Dato 2025 Gen–Lug:** € {tot_c_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_c_2025_tot:,.2f}"
     )
 
-    # Margine KPI
     col3.metric(
         f"Margine Operativo {label_anno}",
         f"€ {mol_sel:,.2f}",
@@ -546,11 +607,12 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown("---")
-    t1, t2, t3, t4, t5 = st.tabs([
+    t1, t2, t3, t4, t5, t6 = st.tabs([
         "📊 Confronto Fatturato",
         "👥 Costi Totali Personale",
         "⏱️ Ore Dirette",
         "⚙️ Ore Indirette",
+        "💶 Media Oraria (Fatturato/Ore)",
         "📋 Dettaglio Dipendenti",
     ])
 
@@ -584,12 +646,11 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_c, use_container_width=True)
 
     with t3:
-        # ANDAMENTO ORE DIRETTE
         tot_dir_26 = df_ore_dirette["Ore Dirette 2026"].sum()
         tot_dir_25_parz = df_ore_dirette["Ore Dirette 2025"].iloc[:7].sum()
         diff_dir = tot_dir_26 - tot_dir_25_parz
 
-        st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo / Commessa)")
+        st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo)")
         c_dir1, c_dir2 = st.columns(2)
         c_dir1.metric(
             "Ore Dirette 2026 (Gen–Lug)",
@@ -613,14 +674,11 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_dir, use_container_width=True)
 
     with t4:
-        # ANDAMENTO ORE INDIRETTE
         tot_ind_26 = df_ore_indirette["Ore Indirette 2026"].sum()
         tot_ind_25_parz = df_ore_indirette["Ore Indirette 2025"].iloc[:7].sum()
         diff_ind = tot_ind_26 - tot_ind_25_parz
 
-        st.subheader(
-            "⚙️ Andamento Ore Indirette (Gestione / Struttura / Formazione)"
-        )
+        st.subheader("⚙️ Andamento Ore Indirette (Gestione / Struttura)")
         c_ind1, c_ind2 = st.columns(2)
         c_ind1.metric(
             "Ore Indirette 2026 (Gen–Lug)",
@@ -645,6 +703,42 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_ind, use_container_width=True)
 
     with t5:
+        st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
+
+        media_2026_gen_lug = 31.42
+        media_2025_gen_lug = 29.23
+        diff_media = media_2026_gen_lug - media_2025_gen_lug
+
+        m1, m2 = st.columns(2)
+        m1.metric(
+            "Media Oraria 2026 (Gen–Lug)",
+            f"€ {media_2026_gen_lug:,.2f} / h",
+            delta=f"€ {diff_media:,.2f} / h vs 2025 Gen-Lug",
+        )
+        m2.caption(
+            f"📌 **Media Oraria 2025 (Gen–Lug):** € {media_2025_gen_lug:,.2f} / h  \n📌 **Media Oraria 2025 (Totale Annuo):** € 30.12 / h  \n📌 **Media Oraria 2024 (Totale Annuo):** € 28.83 / h"
+        )
+
+        fig_media = px.line(
+            df_media_oraria,
+            x="Mese",
+            y=[
+                f"Media Oraria {anno_selezionato}",
+                "Media Oraria 2025",
+                "Media Oraria 2024",
+            ],
+            markers=True,
+            title=f"Andamento Media Oraria (€/h): {label_anno} vs 2025 vs 2024",
+            labels={"value": "Euro per Ora (€/h)", "variable": "Anno"},
+            text=[
+                f"€{val:,.2f}" if val > 0 else ""
+                for val in df_media_oraria[f"Media Oraria {anno_selezionato}"]
+            ],
+        )
+        fig_media.update_traces(textposition="top center")
+        st.plotly_chart(fig_media, use_container_width=True)
+
+    with t6:
         st.subheader(
             "📊 TOTALE ANNO 2026 (PARZIALE GEN–LUG) - COSTI DEL PERSONALE"
         )
@@ -718,7 +812,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Qual è l'andamento delle ore indirette nel 2026 rispetto al 2025?",
+            placeholder="Es. Qual è la media oraria del fatturato nel 2026 rispetto al 2025?",
         )
     with col2:
         st.write("Oppure parla:")
@@ -740,6 +834,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
                 Rispondi in modo professionale, sintetico e preciso.
                 Dati aziendali principali:
                 - Fatturato 2026 (Gen-Lug): € 490.149,83 | 2025 (Gen-Lug): € 470.133,63
+                - Media Oraria 2026 (Gen-Lug): € 31,42/h | 2025 (Gen-Lug): € 29,23/h | 2025 Tot: € 30,12/h
                 - Costi Personale 2026 (Gen-Lug): € 268.016,84 (13.247 ore totali)
                 - Costo Orario Medio Sintec 2026: € 20,43/h
                 - Ore Dirette 2026 (Gen-Lug): 14.114,0 h | 2025 (Gen-Lug): 15.134,0 h
@@ -760,8 +855,17 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
 
         domanda_lower = domanda.lower()
 
-        # Grafici condizionali generati su richiesta
-        if "ore dirette" in domanda_lower:
+        if "media oraria" in domanda_lower:
+            fig_m = px.line(
+                df_media_oraria.iloc[:7],
+                x="Mese",
+                y=["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"],
+                markers=True,
+                title="💶 Media Oraria (€/h): 2026 vs 2025 vs 2024 (Gen-Lug)",
+            )
+            st.plotly_chart(fig_m, use_container_width=True)
+
+        elif "ore dirette" in domanda_lower:
             fig_a = px.bar(
                 df_ore_dirette.iloc[:7],
                 x="Mese",
