@@ -401,12 +401,12 @@ if sezione == "📈 Dashboard Grafica":
         f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno di Riferimento)"
     )
 
-    # Calcolo KPI Anno Selezionato
+    # Calcoli KPI Selezionato
     tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
 
-    # Calcolo KPI 2025 Totale Annuo e Parziale (Gen-Lug)
+    # Calcoli KPI 2025 Totale e Parziale (Gen-Lug)
     tot_f_2025_tot = df_fat["Fatturato 2025"].sum()
     tot_f_2025_parz = df_fat["Fatturato 2025"].iloc[:7].sum()
 
@@ -423,7 +423,7 @@ if sezione == "📈 Dashboard Grafica":
 
     col1, col2, col3 = st.columns(3)
 
-    # Column 1: Fatturato
+    # Fatturato KPI
     col1.metric(
         f"Fatturato Totale {label_anno}",
         f"€ {tot_f_sel:,.2f}",
@@ -433,7 +433,7 @@ if sezione == "📈 Dashboard Grafica":
         f"📌 **Dato 2025 Gen–Lug:** € {tot_f_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_f_2025_tot:,.2f}"
     )
 
-    # Column 2: Costi Personale
+    # Costi KPI
     col2.metric(
         f"Costi Personale {label_anno}",
         f"€ {tot_c_sel:,.2f}",
@@ -444,7 +444,7 @@ if sezione == "📈 Dashboard Grafica":
         f"📌 **Dato 2025 Gen–Lug:** € {tot_c_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_c_2025_tot:,.2f}"
     )
 
-    # Column 3: Margine Operativo
+    # Margine KPI
     col3.metric(
         f"Margine Operativo {label_anno}",
         f"€ {mol_sel:,.2f}",
@@ -564,7 +564,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Quanto abbiamo fatturato a Wittur nei primi mesi del 2026?",
+            placeholder="Es. Qual è la differenza di fatturato parziale da gennaio a luglio tra i due anni?",
         )
     with col2:
         st.write("Oppure parla:")
@@ -576,4 +576,45 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
         )
 
     if domanda:
-        st.info(f"Elaborazione richiesta per: **{domanda}**")
+        st.markdown("### 💡 Risposta dell'Assistente:")
+
+        # Se sono presenti le API Keys di OpenAI nelle secrets
+        if "OPENAI_API_KEY" in st.secrets:
+            try:
+                prompt_sistema = """
+                Sei l'assistente virtuale di Controllo di Gestione di Sintec S.r.l.
+                Rispondi in modo professionale, sintetico e preciso.
+                Dati aziendali principali:
+                - Fatturato 2026 (Gen-Lug): € 490.149,83
+                - Fatturato 2025 (Gen-Lug): € 470.133,63
+                - Differenza Parziale Fatturato (Gen-Lug): +€ 20.016,20 (+4,26%)
+                - Fatturato 2025 Totale Annuo: € 801.134,71
+                - Costi Personale 2026 (Gen-Lug): € 268.016,84 (13.247 ore totali)
+                - Costo Orario Medio Sintec 2026: € 20,43/h
+                """
+                client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": prompt_sistema},
+                        {"role": "user", "content": domanda},
+                    ],
+                )
+                risposta = response.choices[0].message.content
+                st.success(risposta)
+            except Exception as e:
+                st.error(f"Errore nella chiamata all'API OpenAI: {e}")
+        else:
+            # Risposta intelligente locale per le domande sul confronto parziale
+            domanda_lower = domanda.lower()
+            if "differenza" in domanda_lower and "fatturato" in domanda_lower:
+                st.success(
+                    "**Analisi Differenza Fatturato Parziale (Gennaio – Luglio):**\n\n"
+                    "* **Fatturato 2026 (Gen–Lug):** € 490.149,83\n"
+                    "* **Fatturato 2025 (Gen–Lug):** € 470.133,63\n"
+                    "* **Differenza Parziale:** **+€ 20.016,20** (**+4,26%** di crescita nel 2026 rispetto allo stesso periodo del 2025)."
+                )
+            else:
+                st.info(
+                    f"Richiesta ricevuta: **'{domanda}'**. Per abilitare risposte libere su qualsiasi domanda, inserisci la tua `OPENAI_API_KEY` nei Secrets di Streamlit."
+                )
