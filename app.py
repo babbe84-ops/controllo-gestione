@@ -558,9 +558,16 @@ if sezione == "📈 Dashboard Grafica":
         f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno di Riferimento)"
     )
 
+    # --- CALCOLI REALI E PREVISIONALI MATEMATICI ---
     tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
+
+    # Se l'anno è il 2026 (parziale Gen-Lug, ossia 7 mesi), calcoliamo la proiezione annuale (Gen-Dic / 7 * 12)
+    mesi_consolidati = 7 if anno_selezionato == 2026 else 12
+    prev_f_sel = (tot_f_sel / mesi_consolidati) * 12
+    prev_c_sel = (tot_c_sel / mesi_consolidati) * 12
+    prev_mol_sel = prev_f_sel - prev_c_sel
 
     tot_f_2025_tot = df_fat["Fatturato 2025"].sum()
     tot_f_2025_parz = df_fat["Fatturato 2025"].iloc[:7].sum()
@@ -583,7 +590,7 @@ if sezione == "📈 Dashboard Grafica":
         delta=f"€ {diff_f:,.2f} vs Tot 2025",
     )
     col1.caption(
-        f"📌 **Dato 2025 Gen–Lug:** € {tot_f_2025_parz:,.2f}  \n📌 **Dato 2025 Consuntivo Totale:** € {tot_f_2025_tot:,.2f}"
+        f"🔮 **Previsionale Fine Anno:** € {prev_f_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {tot_f_2025_parz:,.2f} | **2025 Consuntivo:** € {tot_f_2025_tot:,.2f}"
     )
 
     col2.metric(
@@ -593,7 +600,7 @@ if sezione == "📈 Dashboard Grafica":
         delta_color="inverse",
     )
     col2.caption(
-        f"📌 **Dato 2025 Gen–Lug:** € {tot_c_2025_parz:,.2f}  \n📌 **Dato 2025 Consuntivo Totale:** € {tot_c_2025_tot:,.2f}"
+        f"🔮 **Previsionale Fine Anno:** € {prev_c_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {tot_c_2025_parz:,.2f} | **2025 Consuntivo:** € {tot_c_2025_tot:,.2f}"
     )
 
     col3.metric(
@@ -602,7 +609,7 @@ if sezione == "📈 Dashboard Grafica":
         delta=f"€ {diff_mol:,.2f} vs Tot 2025",
     )
     col3.caption(
-        f"📌 **Dato 2025 Gen–Lug:** € {mol_2025_parz:,.2f}  \n📌 **Dato 2025 Consuntivo Totale:** € {mol_2025_tot:,.2f}"
+        f"🔮 **Previsionale Fine Anno:** € {prev_mol_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {mol_2025_parz:,.2f} | **2025 Consuntivo:** € {mol_2025_tot:,.2f}"
     )
 
     st.markdown("---")
@@ -650,6 +657,8 @@ if sezione == "📈 Dashboard Grafica":
         tot_dir_25_tot = df_ore_dirette["Ore Dirette 2025"].sum()
         diff_dir = tot_dir_26 - tot_dir_25_parz
 
+        prev_dir_26 = (tot_dir_26 / mesi_consolidati) * 12 if anno_selezionato == 2026 else tot_dir_26
+
         st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo)")
         c_dir1, c_dir2 = st.columns(2)
         c_dir1.metric(
@@ -658,7 +667,7 @@ if sezione == "📈 Dashboard Grafica":
             delta=f"{diff_dir:,.1f} h vs 2025 Gen-Lug",
         )
         c_dir2.caption(
-            f"📌 **Ore Dirette 2025 Parziale (Gen–Lug):** {tot_dir_25_parz:,.1f} h  \n📌 **Consuntivo Anno Precedente (2025 Totale):** {tot_dir_25_tot:,.1f} h"
+            f"🔮 **Previsionale Fine Anno 2026:** {prev_dir_26:,.1f} h  \n📌 **Ore Dirette 2025 Parziale (Gen–Lug):** {tot_dir_25_parz:,.1f} h  \n📌 **Consuntivo 2025 Totale:** {tot_dir_25_tot:,.1f} h"
         )
 
         fig_dir = px.bar(
@@ -679,6 +688,8 @@ if sezione == "📈 Dashboard Grafica":
         tot_ind_25_tot = df_ore_indirette["Ore Indirette 2025"].sum()
         diff_ind = tot_ind_26 - tot_ind_25_parz
 
+        prev_ind_26 = (tot_ind_26 / mesi_consolidati) * 12 if anno_selezionato == 2026 else tot_ind_26
+
         st.subheader("⚙️ Andamento Ore Indirette (Gestione / Struttura)")
         c_ind1, c_ind2 = st.columns(2)
         c_ind1.metric(
@@ -688,7 +699,7 @@ if sezione == "📈 Dashboard Grafica":
             delta_color="inverse",
         )
         c_ind2.caption(
-            f"📌 **Ore Indirette 2025 Parziale (Gen–Lug):** {tot_ind_25_parz:,.1f} h  \n📌 **Consuntivo Anno Precedente (2025 Totale):** {tot_ind_25_tot:,.1f} h"
+            f"🔮 **Previsionale Fine Anno 2026:** {prev_ind_26:,.1f} h  \n📌 **Ore Indirette 2025 Parziale (Gen–Lug):** {tot_ind_25_parz:,.1f} h  \n📌 **Consuntivo 2025 Totale:** {tot_ind_25_tot:,.1f} h"
         )
 
         fig_ind = px.bar(
@@ -720,7 +731,6 @@ if sezione == "📈 Dashboard Grafica":
             f"📌 **Media Oraria 2025 Parziale (Gen–Lug):** € {media_2025_gen_lug:,.2f} / h  \n📌 **Consuntivo 2025 Totale:** € 30.12 / h  \n📌 **Consuntivo 2024 Totale:** € 28.83 / h"
         )
 
-        # GRAFICO A COLONNE / BARRE RAGGRUPPATE PER LA MEDIA ORARIA
         fig_media = px.bar(
             df_media_oraria,
             x="Mese",
@@ -811,7 +821,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Qual è stato il consuntivo delle ore dirette del 2025?",
+            placeholder="Es. Qual è la previsione del fatturato a fine anno per il 2026?",
         )
     with col2:
         st.write("Oppure parla:")
@@ -832,12 +842,12 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
                 Sei l'assistente virtuale di Controllo di Gestione di Sintec S.r.l.
                 Rispondi in modo professionale, sintetico e preciso.
                 Dati aziendali principali:
-                - Fatturato 2026 (Gen-Lug): € 490.149,83 | 2025 (Gen-Lug): € 470.133,63 | Consuntivo 2025 Tot: € 801.134,71
-                - Media Oraria 2026 (Gen-Lug): € 31,42/h | 2025 (Gen-Lug): € 29,23/h | Consuntivo 2025 Tot: € 30,12/h
-                - Costi Personale 2026 (Gen-Lug): € 268.016,84 (13.247 ore totali)
-                - Costo Orario Medio Sintec 2026: € 20,43/h
-                - Ore Dirette 2026 (Gen-Lug): 14.114,0 h | 2025 (Gen-Lug): 15.134,0 h | Consuntivo 2025 Totale: 25.026,0 h
-                - Ore Indirette 2026 (Gen-Lug): 1.488,5 h | 2025 (Gen-Lug): 903,5 h | Consuntivo 2025 Totale: 1.573,0 h
+                - Fatturato 2026 Gen-Lug: € 490.149,83 | Previsionale 2026 (12 mesi): € 840.256,85 | Consuntivo 2025: € 801.134,71
+                - Costi Personale 2026 Gen-Lug: € 268.016,84 | Previsionale 2026 (12 mesi): € 459.457,44 | Consuntivo 2025: € 453.488,81
+                - Margine 2026 Gen-Lug: € 222.132,99 | Previsionale 2026 (12 mesi): € 380.799,41 | Consuntivo 2025: € 347.645,90
+                - Media Oraria 2026 Gen-Lug: € 31,42/h | Consuntivo 2025: € 30,12/h
+                - Ore Dirette 2026 Gen-Lug: 14.114,0 h | Previsionale 2026: 24.195,4 h | Consuntivo 2025: 25.026,0 h
+                - Ore Indirette 2026 Gen-Lug: 1.488,5 h | Previsionale 2026: 2.551,7 h | Consuntivo 2025: 1.573,0 h
                 """
                 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                 response = client.chat.completions.create(
