@@ -238,7 +238,156 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI DETTAGLIATI CLIENTI (INCLUSI WITTUR E LUGLIO 2026) ---
+df_ore_dirette = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Ore Dirette 2025": [
+        2017.0,
+        2087.0,
+        2317.5,
+        2155.5,
+        2251.5,
+        2221.0,
+        2084.0,
+        1308.0,
+        2454.0,
+        2355.0,
+        2134.0,
+        1641.5,
+    ],
+    "Ore Dirette 2026": [
+        1788.0,
+        2108.5,
+        2102.5,
+        2020.5,
+        2118.5,
+        2027.0,
+        1949.0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
+df_ore_indirette = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Ore Indirette 2025": [
+        193.0,
+        137.0,
+        81.5,
+        112.5,
+        155.5,
+        126.5,
+        97.5,
+        65.0,
+        163.5,
+        145.5,
+        124.5,
+        171.0,
+    ],
+    "Ore Indirette 2026": [
+        156.0,
+        237.0,
+        327.0,
+        222.0,
+        220.5,
+        134.0,
+        188.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
+df_media_oraria = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Media Oraria 2024": [
+        25.98,
+        27.17,
+        30.29,
+        27.78,
+        28.50,
+        26.28,
+        30.74,
+        27.24,
+        29.82,
+        31.52,
+        27.52,
+        30.05,
+    ],
+    "Media Oraria 2025": [
+        25.97,
+        28.23,
+        30.30,
+        30.22,
+        29.54,
+        31.17,
+        29.55,
+        25.94,
+        32.20,
+        32.80,
+        28.68,
+        35.49,
+    ],
+    "Media Oraria 2026": [
+        30.13,
+        31.37,
+        31.13,
+        31.31,
+        27.80,
+        37.32,
+        31.10,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
+# --- DATI DETTAGLIATI CLIENTI ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
         "WITTUR SPA",
@@ -374,7 +523,6 @@ dati_clienti_mensili = {
     },
 }
 
-# Inizializza lo stato del cliente selezionato
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
@@ -418,9 +566,13 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    t1, t2 = st.tabs(
-        ["🍕 Analisi Avanzata Clienti & Fatturato", "📊 Indicatori Mensili"]
-    )
+    t1, t2, t3, t4, t5 = st.tabs([
+        "🍕 Analisi Clienti",
+        "📊 Fatturato",
+        "👥 Costi Personale",
+        "⏱️ Ore Dirette/Indirette",
+        "💶 Media Oraria",
+    ])
 
     with t1:
         st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Lug 2026)")
@@ -439,13 +591,10 @@ if sezione == "📈 Dashboard Grafica":
             fig_pie.update_traces(
                 textposition="inside", textinfo="percent+label"
             )
-
-            # DISABILITA IL NASCONDIMENTO DEI DATI AL CLICK SULLA LEGENDA
             fig_pie.update_layout(
                 legend_itemclick=False, legend_itemdoubleclick=False
             )
 
-            # INTERCETTA IL CLICK PER APRIRE LA SCHEDA CLIENTE
             selected_pie = st.plotly_chart(
                 layout_grafico_chiaro(fig_pie),
                 use_container_width=True,
@@ -470,7 +619,6 @@ if sezione == "📈 Dashboard Grafica":
                 df_cli_s["Fatturato 2026 (Gen-Lug) (€)"] / tot_cli * 100
             ).round(2)
 
-            # Riga TOTALE sotto la tabella principale
             df_tot_riga = pd.DataFrame([{
                 "Cliente": "TOTALE FATTURATO",
                 "Fatturato 2026 (Gen-Lug) (€)": tot_cli,
@@ -500,7 +648,6 @@ if sezione == "📈 Dashboard Grafica":
         st.markdown("---")
         st.subheader("🔎 Dettaglio Mensile e Storico per Singolo Cliente")
 
-        # Selezione cliente sincronizzata tra grafica e menu
         idx_default = (
             list(dati_clienti_mensili.keys()).index(
                 st.session_state["cliente_selezionato"]
@@ -517,7 +664,6 @@ if sezione == "📈 Dashboard Grafica":
             key="select_cli_box",
         )
 
-        # Aggiorna lo stato se l'utente cambia tendina
         st.session_state["cliente_selezionato"] = cli_scelto
 
         df_cli_m = pd.DataFrame({
@@ -527,7 +673,6 @@ if sezione == "📈 Dashboard Grafica":
             "2024 (€)": dati_clienti_mensili[cli_scelto]["2024"],
         })
 
-        # Calcolo Totali Cliente
         tot_2026 = sum(dati_clienti_mensili[cli_scelto]["2026"])
         tot_2025 = sum(dati_clienti_mensili[cli_scelto]["2025"])
         tot_2024 = sum(dati_clienti_mensili[cli_scelto]["2024"])
@@ -571,7 +716,8 @@ if sezione == "📈 Dashboard Grafica":
                 color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
                 text_auto=",.0f",
             )
-            # Evita che cliccare sulla legenda del grafico mensile disattivi le barre
+            # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
+            fig_cli_m.update_traces(textposition="outside")
             fig_cli_m.update_layout(
                 legend_itemclick=False, legend_itemdoubleclick=False
             )
@@ -580,8 +726,98 @@ if sezione == "📈 Dashboard Grafica":
             )
 
     with t2:
-        st.write(
-            "Sezione evoluzione indicatori mensili, margine e ore lavorate."
+        st.subheader("📊 Confronto Fatturato Mensile Generale")
+        fig_f = px.bar(
+            df_fat,
+            x="Mese",
+            y=["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"],
+            barmode="group",
+            title="Andamento Fatturato Mensile (€)",
+            color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
+            text_auto=",.0f",
+        )
+        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
+        fig_f.update_traces(textposition="outside")
+        fig_f.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
+
+    with t3:
+        st.subheader("👥 Costi Personale Mensili")
+        fig_c = px.bar(
+            df_costi,
+            x="Mese",
+            y=["Costi 2026", "Costi 2025", "Costi 2024"],
+            barmode="group",
+            title="Andamento Costi Personale (€)",
+            color_discrete_sequence=["#e11d48", "#f43f5e", "#fda4af"],
+            text_auto=",.0f",
+        )
+        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
+        fig_c.update_traces(textposition="outside")
+        fig_c.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
+
+    with t4:
+        st.subheader("⏱️ Ore Dirette e Indirette")
+        col_o1, col_o2 = st.columns(2)
+        with col_o1:
+            fig_dir = px.bar(
+                df_ore_dirette,
+                x="Mese",
+                y=["Ore Dirette 2026", "Ore Dirette 2025"],
+                barmode="group",
+                title="Ore Dirette Lavorate (h)",
+                color_discrete_sequence=["#16a34a", "#86efac"],
+                text_auto=",.1f",
+            )
+            fig_dir.update_traces(textposition="outside")
+            fig_dir.update_layout(
+                legend_itemclick=False, legend_itemdoubleclick=False
+            )
+            st.plotly_chart(
+                layout_grafico_chiaro(fig_dir), use_container_width=True
+            )
+
+        with col_o2:
+            fig_ind = px.bar(
+                df_ore_indirette,
+                x="Mese",
+                y=["Ore Indirette 2026", "Ore Indirette 2025"],
+                barmode="group",
+                title="Ore Indirette (h)",
+                color_discrete_sequence=["#d97706", "#fde047"],
+                text_auto=",.1f",
+            )
+            fig_ind.update_traces(textposition="outside")
+            fig_ind.update_layout(
+                legend_itemclick=False, legend_itemdoubleclick=False
+            )
+            st.plotly_chart(
+                layout_grafico_chiaro(fig_ind), use_container_width=True
+            )
+
+    with t5:
+        st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
+        fig_media = px.bar(
+            df_media_oraria,
+            x="Mese",
+            y=["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"],
+            barmode="group",
+            title="Media Oraria (€/h)",
+            color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
+            text_auto=",.2f",
+        )
+        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
+        fig_media.update_traces(textposition="outside")
+        fig_media.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(
+            layout_grafico_chiaro(fig_media), use_container_width=True
         )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
