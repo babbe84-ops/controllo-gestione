@@ -30,7 +30,7 @@ if not st.session_state["authenticated"]:
             st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI FATTURATO E COSTI ---
+# --- DATI FATTURATO E COSTI MESI ANNO ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -300,6 +300,71 @@ df_media_oraria = pd.DataFrame({
     ],
 })
 
+# --- DATI CLIENTO / FATTURATO ---
+df_clienti_2026 = pd.DataFrame({
+    "Cliente": [
+        "ACMI BEVERAGE SPA",
+        "ACMI LABELLING SRL",
+        "CALF SPA",
+        "CATTANI SPA",
+        "CSF INOX S.P.A.",
+        "DIECI SRL",
+        "ERRESSE Costmec",
+        "JOHN BEAN TECHNOLOGIES",
+        "GAMMA MECCANICA S.p.A",
+        "GEA MECHANICAL EQUIPMENT",
+        "REGGIANA RIDUTTORI SRL",
+        "PRISMA S.P.A.",
+        "I.E. PARK SRL",
+        "ALTRI CLIENTI",
+    ],
+    "Fatturato 2026": [
+        17577.00,
+        6908.00,
+        9133.00,
+        13314.00,
+        3975.00,
+        2790.00,
+        3273.00,
+        2640.00,
+        12916.00,
+        9393.00,
+        5238.00,
+        2227.50,
+        1860.00,
+        399129.93,
+    ],
+})
+
+# Dettagli mensili comparativi per cliente (Gen-Lug)
+dati_clienti_mensili = {
+    "CALF SPA": {
+        "2026": [4698.0, 4435.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "2025": [6061.0, 5017.0, 6365.5, 6742.5, 5408.5, 6612.0, 5814.5],
+        "2024": [5026.0, 6149.5, 5908.0, 5110.0, 4018.0, 6734.0, 3976.0],
+    },
+    "CATTANI SPA": {
+        "2026": [1918.0, 3290.0, 2674.0, 2996.0, 546.0, 1890.0, 2058.0],
+        "2025": [1400.0, 1386.0, 1330.0, 2156.0, 1694.0, 2618.0, 3234.0],
+        "2024": [1512.0, 1148.0, 1946.0, 1428.0, 1848.0, 1022.0, 2170.0],
+    },
+    "GAMMA MECCANICA S.p.A": {
+        "2026": [1472.0, 480.0, 4868.0, 2832.0, 3264.0, 0.0, 2912.0],
+        "2025": [0.0, 2070.0, 4650.0, 1920.0, 0.0, 2280.0, 0.0],
+        "2024": [0.0, 0.0, 0.0, 2430.0, 4800.0, 2040.0, 0.0],
+    },
+    "CSF INOX S.P.A.": {
+        "2026": [0.0, 0.0, 0.0, 0.0, 2295.0, 1680.0, 1200.0],
+        "2025": [1920.0, 1920.0, 1920.0, 1440.0, 720.0, 1200.0, 2160.0],
+        "2024": [0.0, 0.0, 1455.0, 1920.0, 1170.0, 0.0, 2160.0],
+    },
+    "ACMI BEVERAGE SPA": {
+        "2026": [6784.0, 0.0, 10793.0, 0.0, 0.0, 0.0, 0.0],
+        "2025": [11262.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+}
+
 # --- DATI RIASSUNTIVI ANNO 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
@@ -563,7 +628,6 @@ if sezione == "📈 Dashboard Grafica":
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
 
-    # Se l'anno è il 2026 (parziale Gen-Lug, ossia 7 mesi), calcoliamo la proiezione annuale (Gen-Dic / 7 * 12)
     mesi_consolidati = 7 if anno_selezionato == 2026 else 12
     prev_f_sel = (tot_f_sel / mesi_consolidati) * 12
     prev_c_sel = (tot_c_sel / mesi_consolidati) * 12
@@ -613,13 +677,14 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown("---")
-    t1, t2, t3, t4, t5, t6 = st.tabs([
+    t1, t2, t3, t4, t5, t6, t7 = st.tabs([
         "📊 Confronto Fatturato",
         "👥 Costi Totali Personale",
         "⏱️ Ore Dirette",
         "⚙️ Ore Indirette",
         "💶 Media Oraria (Fatturato/Ore)",
         "📋 Dettaglio Dipendenti",
+        "🍕 Analisi Fatturato per Cliente",
     ])
 
     with t1:
@@ -636,19 +701,17 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_f, use_container_width=True)
 
     with t2:
-        fig_c = px.line(
+        # GRAFICO A COLONNE / BARRE RAGGRUPPATE PER I COSTI DEL PERSONALE
+        fig_c = px.bar(
             df_costi,
             x="Mese",
             y=[f"Costi {anno_selezionato}", "Costi 2025"],
-            markers=True,
+            barmode="group",
             title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
-            text=[
-                f"€{val:,.0f}" if val > 0 else ""
-                for val in df_costi[f"Costi {anno_selezionato}"]
-            ],
+            text_auto=",.0f",
         )
-        fig_c.update_traces(textposition="top center")
+        fig_c.update_traces(textposition="outside")
         st.plotly_chart(fig_c, use_container_width=True)
 
     with t3:
@@ -657,7 +720,11 @@ if sezione == "📈 Dashboard Grafica":
         tot_dir_25_tot = df_ore_dirette["Ore Dirette 2025"].sum()
         diff_dir = tot_dir_26 - tot_dir_25_parz
 
-        prev_dir_26 = (tot_dir_26 / mesi_consolidati) * 12 if anno_selezionato == 2026 else tot_dir_26
+        prev_dir_26 = (
+            (tot_dir_26 / mesi_consolidati) * 12
+            if anno_selezionato == 2026
+            else tot_dir_26
+        )
 
         st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo)")
         c_dir1, c_dir2 = st.columns(2)
@@ -688,7 +755,11 @@ if sezione == "📈 Dashboard Grafica":
         tot_ind_25_tot = df_ore_indirette["Ore Indirette 2025"].sum()
         diff_ind = tot_ind_26 - tot_ind_25_parz
 
-        prev_ind_26 = (tot_ind_26 / mesi_consolidati) * 12 if anno_selezionato == 2026 else tot_ind_26
+        prev_ind_26 = (
+            (tot_ind_26 / mesi_consolidati) * 12
+            if anno_selezionato == 2026
+            else tot_ind_26
+        )
 
         st.subheader("⚙️ Andamento Ore Indirette (Gestione / Struttura)")
         c_ind1, c_ind2 = st.columns(2)
@@ -811,6 +882,85 @@ if sezione == "📈 Dashboard Grafica":
         fig_dip.update_traces(textposition="outside")
         st.plotly_chart(fig_dip, use_container_width=True)
 
+    with t7:
+        st.subheader("🍕 Ripartizione Percentuale del Fatturato per Cliente")
+
+        col_pie1, col_pie2 = st.columns([1.2, 1])
+
+        with col_pie1:
+            fig_pie = px.pie(
+                df_clienti_2026,
+                values="Fatturato 2026",
+                names="Cliente",
+                title="Quota Fatturato per Cliente (Anno 2026 Gen–Lug)",
+                hole=0.3,
+            )
+            fig_pie.update_traces(textposition="inside", textinfo="percent+label")
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        with col_pie2:
+            st.markdown("#### 📋 Graduatoria Fatturato Clienti")
+            df_cli_sorted = df_clienti_2026.sort_values(
+                by="Fatturato 2026", ascending=False
+            ).reset_index(drop=True)
+            tot_cli = df_cli_sorted["Fatturato 2026"].sum()
+            df_cli_sorted["% Sul Totale"] = (
+                df_cli_sorted["Fatturato 2026"] / tot_cli * 100
+            ).round(2)
+
+            st.dataframe(
+                df_cli_sorted.style.format({
+                    "Fatturato 2026": "€ {:,.2f}",
+                    "% Sul Totale": "{:.2f} %",
+                }),
+                use_container_width=True,
+                height=420,
+            )
+
+        st.markdown("---")
+        st.subheader(
+            "🔎 Dettaglio Mensile per Cliente e Confronto Anni Precedenti"
+        )
+
+        cliente_scelto = st.selectbox(
+            "Seleziona un Cliente per visualizzare lo storico mensile:",
+            list(dati_clienti_mensili.keys()),
+        )
+
+        df_cli_m = pd.DataFrame({
+            "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug"],
+            "Fatturato 2026 (€)": dati_clienti_mensili[cliente_scelto]["2026"],
+            "Fatturato 2025 (€)": dati_clienti_mensili[cliente_scelto]["2025"],
+            "Fatturato 2024 (€)": dati_clienti_mensili[cliente_scelto]["2024"],
+        })
+
+        st.write(
+            f"**Andamento Mensile Fatturato (Gen–Lug) - {cliente_scelto}**"
+        )
+        st.dataframe(
+            df_cli_m.style.format({
+                "Fatturato 2026 (€)": "€ {:,.2f}",
+                "Fatturato 2025 (€)": "€ {:,.2f}",
+                "Fatturato 2024 (€)": "€ {:,.2f}",
+            }),
+            use_container_width=True,
+        )
+
+        fig_cli_m = px.bar(
+            df_cli_m,
+            x="Mese",
+            y=[
+                "Fatturato 2026 (€)",
+                "Fatturato 2025 (€)",
+                "Fatturato 2024 (€)",
+            ],
+            barmode="group",
+            title=f"Confronto Storico Mensile: {cliente_scelto} (2026 vs 2025 vs 2024)",
+            text_auto=",.0f",
+        )
+        fig_cli_m.update_traces(textposition="outside")
+        st.plotly_chart(fig_cli_m, use_container_width=True)
+
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     st.subheader("Assistente Virtuale Sintec")
     st.write(
@@ -821,7 +971,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Qual è la previsione del fatturato a fine anno per il 2026?",
+            placeholder="Es. Qual è la percentuale di fatturato del cliente CALF nel 2026?",
         )
     with col2:
         st.write("Oppure parla:")
