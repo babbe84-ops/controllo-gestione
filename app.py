@@ -576,9 +576,10 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
         )
 
     if domanda:
+        st.markdown("---")
         st.markdown("### 💡 Risposta dell'Assistente:")
 
-        # Se sono presenti le API Keys di OpenAI nelle secrets
+        # Gestione con OpenAI API Key nei Secrets di Streamlit
         if "OPENAI_API_KEY" in st.secrets:
             try:
                 prompt_sistema = """
@@ -603,18 +604,41 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
                 risposta = response.choices[0].message.content
                 st.success(risposta)
             except Exception as e:
-                st.error(f"Errore nella chiamata all'API OpenAI: {e}")
-        else:
-            # Risposta intelligente locale per le domande sul confronto parziale
-            domanda_lower = domanda.lower()
-            if "differenza" in domanda_lower and "fatturato" in domanda_lower:
+                st.error(f"Errore nell'elaborazione dell'API OpenAI: {e}")
+
+        # Motore locale intelligente con generazione automatica del grafico
+        domanda_lower = domanda.lower()
+
+        if (
+            "differenza" in domanda_lower or "grafico" in domanda_lower
+        ) and "fatturato" in domanda_lower:
+            if "OPENAI_API_KEY" not in st.secrets:
                 st.success(
                     "**Analisi Differenza Fatturato Parziale (Gennaio – Luglio):**\n\n"
                     "* **Fatturato 2026 (Gen–Lug):** € 490.149,83\n"
                     "* **Fatturato 2025 (Gen–Lug):** € 470.133,63\n"
-                    "* **Differenza Parziale:** **+€ 20.016,20** (**+4,26%** di crescita nel 2026 rispetto allo stesso periodo del 2025)."
+                    "* **Differenza Parziale:** **+€ 20.016,20** (**+4,26%** di crescita nel 2026 rispetto al 2025)."
                 )
-            else:
-                st.info(
-                    f"Richiesta ricevuta: **'{domanda}'**. Per abilitare risposte libere su qualsiasi domanda, inserisci la tua `OPENAI_API_KEY` nei Secrets di Streamlit."
-                )
+
+            # Generazione del Grafico dedicato richiesto dall'Assistente
+            df_assistente = df_fat.iloc[:7].copy()
+            df_assistente["Differenza (€)"] = (
+                df_assistente["Fatturato 2026"] - df_assistente["Fatturato 2025"]
+            )
+
+            fig_assistente = px.bar(
+                df_assistente,
+                x="Mese",
+                y=["Fatturato 2026", "Fatturato 2025"],
+                barmode="group",
+                title="📈 Grafico Generato dall'Assistente: Confronto Parziale Gen–Lug (2026 vs 2025)",
+                labels={"value": "Euro (€)", "variable": "Anno"},
+                text_auto=",.0f",
+            )
+            fig_assistente.update_traces(textposition="outside")
+            st.plotly_chart(fig_assistente, use_container_width=True)
+
+        elif "OPENAI_API_KEY" not in st.secrets:
+            st.info(
+                f"Richiesta ricevuta: **'{domanda}'**. Per abilitare risposte libere e analisi avanzate su qualsiasi domanda, inserisci la tua `OPENAI_API_KEY` nei Secrets della tua app su Streamlit Cloud."
+            )
