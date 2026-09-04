@@ -149,7 +149,7 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI RIASSUNTIVI ANNO 2026 PER DIPENDENTE ---
+# --- DATI RIASSUNTIVI ANNO 2026 CON RIGA FINALE DI TOTALE SINTEC ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
         "D'ALSAZIA",
@@ -165,6 +165,7 @@ df_riassunto_2026 = pd.DataFrame({
         "PETRO'",
         "GRANDE",
         "DEJVI (luglio-sett.)",
+        "TOTALE SINTEC (MEDIA)",
     ],
     "COSTO TOT": [
         25885.34,
@@ -180,6 +181,7 @@ df_riassunto_2026 = pd.DataFrame({
         19098.31,
         19631.44,
         2642.86,
+        270659.70,
     ],
     "ORE TOT": [
         1222.5,
@@ -195,6 +197,7 @@ df_riassunto_2026 = pd.DataFrame({
         1154.5,
         709.5,
         304.5,
+        13247.0,
     ],
     "COSTO ORARIO": [
         21.17,
@@ -210,6 +213,7 @@ df_riassunto_2026 = pd.DataFrame({
         16.54,
         27.67,
         8.68,
+        20.43,
     ],
 })
 
@@ -461,20 +465,26 @@ if sezione == "📈 Dashboard Grafica":
     with t3:
         st.subheader("📊 TOTALE ANNO 2026 - COSTI DEL PERSONALE")
 
-        # 1. TABELLA RIASSUNTIVA GENERALE
+        # Funzione di formattazione per evidenziare la riga di Totale Sintec
+        def evidenzia_totale(row):
+            if row["COGNOME"] == "TOTALE SINTEC (MEDIA)":
+                return [
+                    "background-color: #fff3cd; font-weight: bold; color: #856404"
+                ] * len(row)
+            return [""] * len(row)
+
         st.dataframe(
-            df_riassunto_2026.style.format({
+            df_riassunto_2026.style.apply(evidenzia_totale, axis=1).format({
                 "COSTO TOT": "€ {:,.2f}",
                 "ORE TOT": "{:,.1f}",
                 "COSTO ORARIO": "€ {:,.2f}",
             }),
             use_container_width=True,
-            height=490,
+            height=530,
         )
 
         st.markdown("---")
 
-        # 2. SELEZIONE E MESE PER MESE PER IL Dettaglio
         st.subheader("🔎 Analisi Mese per Mese per Dipendente")
         dipendente_scelto = st.selectbox(
             "Seleziona un Dipendente per il dettaglio mensile:",
