@@ -50,6 +50,16 @@ st.markdown(
         color: #475569;
         margin-top: 4px;
     }
+    .kpi-delta-pos {
+        color: #16a34a;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+    .kpi-delta-neg {
+        color: #e11d48;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
 
     /* Stile Tab con scrolling orizzontale su schermi stretti */
     .stTabs [data-baseweb="tab-list"] {
@@ -75,7 +85,7 @@ st.markdown(
         color: #ffffff !important;
     }
 
-    /* OTTIMIZZAZIONE SPECIFICA PER DISPOSITIVI MOBILI (SMARTPHONE E TABLET) */
+    /* OTTIMIZZAZIONE SPECIFICA PER DISPOSITIVI MOBILI */
     @media (max-width: 768px) {
         .kpi-card {
             padding: 12px;
@@ -235,7 +245,7 @@ dati_clienti_mensili = {
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
-# FUNZIONE LAYOUT DIVERSIFICATA E OTTIMIZZATA PER MOBILE
+# LAYOUT ANTI-SOVRAPPOSIZIONE E OPTIMIZED MOBILE
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
@@ -246,12 +256,12 @@ def layout_grafico_chiaro(fig):
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.25,  # Spostata in basso per evitare di coprire il grafico su mobile
+            y=-0.25,
             xanchor="center",
             x=0.5,
             bgcolor="rgba(0,0,0,0)"
         ),
-        xaxis=dict(tickangle=-45)  # Inclinazione etichette mesi/categorie per evitare sovrapposizioni su schermi stretti
+        xaxis=dict(tickangle=-45)
     )
     return fig
 
@@ -272,15 +282,54 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    # METRICHE TOP DASHBOARD
-    tot_f_26 = df_fat["Fatturato 2026"].sum()
-    tot_c_26 = df_costi["Costi 2026"].sum()
+    # METRICHE TOP DASHBOARD CON RAFFRONTO 2025 ED EFFETTIVO
+    tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
+    tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
+    tot_f_25_tot = df_fat["Fatturato 2025"].sum()
+    delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
+
+    tot_c_26 = df_costi["Costi 2026"].head(7).sum()
+    tot_c_25 = df_costi["Costi 2025"].head(7).sum()
+    tot_c_25_tot = df_costi["Costi 2025"].sum()
+    delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
+
     mol_26 = tot_f_26 - tot_c_26
+    mol_25 = tot_f_25 - tot_c_25
+    mol_25_tot = tot_f_25_tot - tot_c_25_tot
+    delta_m = ((mol_26 - mol_25) / mol_25) * 100 if mol_25 != 0 else 0
+
+    class_f = "kpi-delta-pos" if delta_f >= 0 else "kpi-delta-neg"
+    class_c = "kpi-delta-neg" if delta_c >= 0 else "kpi-delta-pos"  # Per i costi il segno è inverso
+    class_m = "kpi-delta-pos" if delta_m >= 0 else "kpi-delta-neg"
 
     col_k1, col_k2, col_k3 = st.columns(3)
-    col_k1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato Gen-Lug 2026</div><div class="kpi-value">€ {tot_f_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(tot_f_26/7)*12:,.2f}</div></div>', unsafe_allow_html=True)
-    col_k2.markdown(f'<div class="kpi-card"><div class="kpi-title">Costi Personale Gen-Lug 2026</div><div class="kpi-value" style="color:#e11d48;">€ {tot_c_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(tot_c_26/7)*12:,.2f}</div></div>', unsafe_allow_html=True)
-    col_k3.markdown(f'<div class="kpi-card"><div class="kpi-title">Margine Operativo Gen-Lug 2026</div><div class="kpi-value" style="color:#16a34a;">€ {mol_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(mol_26/7)*12:,.2f}</div></div>', unsafe_allow_html=True)
+    
+    col_k1.markdown(f'''
+    <div class="kpi-card">
+        <div class="kpi-title">Fatturato Gen-Lug 2026</div>
+        <div class="kpi-value">€ {tot_f_26:,.2f}</div>
+        <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {tot_f_25:,.2f}</b> <span class="{class_f}">({delta_f:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Totale Anno 2025: <b>€ {tot_f_25_tot:,.2f}</b></div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+    col_k2.markdown(f'''
+    <div class="kpi-card">
+        <div class="kpi-title">Costi Personale Gen-Lug 2026</div>
+        <div class="kpi-value" style="color:#e11d48;">€ {tot_c_26:,.2f}</div>
+        <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {tot_c_25:,.2f}</b> <span class="{class_c}">({delta_c:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Totale Anno 2025: <b>€ {tot_c_25_tot:,.2f}</b></div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+    col_k3.markdown(f'''
+    <div class="kpi-card">
+        <div class="kpi-title">Margine Operativo Gen-Lug 2026</div>
+        <div class="kpi-value" style="color:#16a34a;">€ {mol_26:,.2f}</div>
+        <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {mol_25:,.2f}</b> <span class="{class_m}">({delta_m:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Totale Anno 2025: <b>€ {mol_25_tot:,.2f}</b></div>
+    </div>
+    ''', unsafe_allow_html=True)
 
     t1, t2, t3, t4, t5, t6, t7 = st.tabs([
         "📊 Confronto Fatturato",
