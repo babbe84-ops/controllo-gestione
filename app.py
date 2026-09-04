@@ -98,7 +98,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI AMMINISTRATIVI (CONSOLIDATI A LUGLIO 2026) ---
+# --- DATI GENERALI AMMINISTRATIVI ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
@@ -149,8 +149,8 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI DETTAGLIATI CLIENTI PERFETTAMENTE ALLINEATI ---
-totale_reale_gen_lug = df_fat["Fatturato 2026"].sum() # € 490.149,83
+# --- DATI DETTAGLIATI CLIENTI ---
+totale_reale_gen_lug = df_fat["Fatturato 2026"].sum()
 
 df_clienti_principali = pd.DataFrame({
     "Cliente": ["WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL", "SILVI S.R.L.", "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA", "CATTANI SPA", "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", "PRISMA S.P.A.", "I.E. PARK SRL"],
@@ -158,7 +158,6 @@ df_clienti_principali = pd.DataFrame({
     "Num Fatture": [19, 29, 6, 6, 6, 2, 7, 5, 3, 1, 3, 2, 1, 2, 2, 1],
 })
 
-# Calcolo automatico esatto della quota clienti minori/altri per garantire coincidenza perfetta
 somma_principali = df_clienti_principali["Fatturato 2026 (Gen-Lug) (€)"].sum()
 quota_altri = totale_reale_gen_lug - somma_principali
 
@@ -184,27 +183,22 @@ dati_clienti_mensili = {
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
+# LAYOUT ANTI-SOVRAPPOSIZIONE MIGLIORATO
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter, sans-serif", color="#0f172a", size=11),
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin=dict(l=20, r=20, t=60, b=20),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1.05,
             xanchor="right",
             x=1,
             bgcolor="rgba(0,0,0,0)"
-        ),
-        uniformtext_minsize=8,
-        uniformtext_mode='hide'
-    )
-    fig.update_traces(
-        textposition="auto",
-        textfont_size=10
+        )
     )
     return fig
 
@@ -256,7 +250,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
             text_auto=",.0f"
         )
-        fig_f.update_layout(yaxis=dict(range=[0, df_fat[["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"]].max().max() * 1.15]))
+        max_val = df_fat[["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"]].max().max()
+        fig_f.update_traces(textposition="outside", textfont_size=9)
+        fig_f.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
 
     with t2:
@@ -270,7 +266,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#e11d48", "#f43f5e", "#fda4af"],
             text_auto=",.0f"
         )
-        fig_c.update_layout(yaxis=dict(range=[0, df_costi[["Costi 2026", "Costi 2025", "Costi 2024"]].max().max() * 1.15]))
+        max_val = df_costi[["Costi 2026", "Costi 2025", "Costi 2024"]].max().max()
+        fig_c.update_traces(textposition="outside", textfont_size=9)
+        fig_c.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
 
     with t3:
@@ -284,7 +282,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#16a34a", "#86efac"],
             text_auto=",.0f"
         )
-        fig_dir.update_layout(yaxis=dict(range=[0, df_ore_dirette[["Ore Dirette 2026", "Ore Dirette 2025"]].max().max() * 1.15]))
+        max_val = df_ore_dirette[["Ore Dirette 2026", "Ore Dirette 2025"]].max().max()
+        fig_dir.update_traces(textposition="outside", textfont_size=9)
+        fig_dir.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_dir), use_container_width=True)
 
     with t4:
@@ -298,7 +298,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#d97706", "#fde047"],
             text_auto=",.0f"
         )
-        fig_ind.update_layout(yaxis=dict(range=[0, df_ore_indirette[["Ore Indirette 2026", "Ore Indirette 2025"]].max().max() * 1.15]))
+        max_val = df_ore_indirette[["Ore Indirette 2026", "Ore Indirette 2025"]].max().max()
+        fig_ind.update_traces(textposition="outside", textfont_size=9)
+        fig_ind.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_ind), use_container_width=True)
 
     with t5:
@@ -312,7 +314,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
             text_auto=",.1f"
         )
-        fig_media.update_layout(yaxis=dict(range=[0, df_media_oraria[["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"]].max().max() * 1.15]))
+        max_val = df_media_oraria[["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"]].max().max()
+        fig_media.update_traces(textposition="outside", textfont_size=9)
+        fig_media.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_media), use_container_width=True)
 
     with t6:
@@ -355,7 +359,9 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#2563eb"],
             title=f"Andamento Mensile Costi - {dip_scelto}"
         )
-        fig_dip.update_layout(yaxis=dict(range=[0, df_dip["Costo Totale (€)"].max() * 1.15]))
+        max_val = df_dip["Costo Totale (€)"].max()
+        fig_dip.update_traces(textposition="outside", textfont_size=9)
+        fig_dip.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
         st.plotly_chart(layout_grafico_chiaro(fig_dip), use_container_width=True)
 
     with t7:
@@ -370,7 +376,7 @@ if sezione == "📈 Dashboard Grafica":
                 names="Cliente",
                 hole=0.4,
                 color_discrete_sequence=px.colors.qualitative.Set3,
-                title="Quota % Fatturato per Cliente (Clicca per selezionare)"
+                title="Quota % Fatturato per Cliente"
             )
             fig_pie.update_traces(textposition='inside', textinfo='percent+label')
 
@@ -475,10 +481,8 @@ if sezione == "📈 Dashboard Grafica":
                 y=["2026 (€)", "2025 (€)", "2024 (€)"],
                 barmode="group",
                 title=f"Confronto Storico Mensile: {cli_scelto}",
-                color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
-                text_auto=",.0f"
+                color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"]
             )
-            fig_cli_m.update_layout(yaxis=dict(range=[0, df_cli_m[["2026 (€)", "2025 (€)", "2024 (€)"]].max().max() * 1.15]))
             st.plotly_chart(layout_grafico_chiaro(fig_cli_m), use_container_width=True)
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
