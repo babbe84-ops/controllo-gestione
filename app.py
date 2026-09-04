@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- STILE TEMA CHIARO, PULITO E RESPONSIVE MOBILE ---
+# --- STILE TEMA CHIARO E RESPONSIVE MOBILE ---
 st.markdown(
     """
 <style>
@@ -105,6 +105,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# --- FUNZIONE STILE RIGHE DI TOTALE ---
+def evidenzia_totale(row, col_chiave="Mese"):
+    if str(row[col_chiave]).upper() in ["TOTALE", "TOTALE FATTURATO", "TOTALE SINTEC (MEDIA GEN-LUG)"]:
+        return ['background-color: #dbeafe; font-weight: bold; color: #1e40af'] * len(row)
+    return [''] * len(row)
+
 # --- LOGIN ---
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
@@ -132,7 +138,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI AMMINISTRATIVI (CONSOLIDATI A LUGLIO 2026) ---
+# --- DATI GENERALI ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
@@ -188,22 +194,11 @@ totale_reale_gen_lug = df_fat["Fatturato 2026"].sum()
 
 df_clienti_principali = pd.DataFrame({
     "Cliente": [
-        "WITTUR SPA", 
-        "SIDEL S.P.A.", 
-        "ACMI LABELLING SRL (ex SACMI)", 
-        "SILVI S.R.L.", 
-        "GAMMA MECCANICA S.p.A", 
-        "ACMI BEVERAGE SPA (ex SACMI)", 
-        "CATTANI SPA", 
-        "GEA MECHANICAL EQUIPMENT", 
-        "CALF SPA", 
-        "REGGIANA RIDUTTORI SRL", 
-        "CSF INOX S.P.A.", 
-        "DIECI SRL", 
-        "ERRESSE Costmec", 
-        "JOHN BEAN TECHNOLOGIES", 
-        "PRISMA S.P.A.", 
-        "I.E. PARK SRL"
+        "WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL (ex SACMI)", "SILVI S.R.L.", 
+        "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA (ex SACMI)", "CATTANI SPA", 
+        "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", 
+        "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", 
+        "PRISMA S.P.A.", "I.E. PARK SRL"
     ],
     "Fatturato 2026 (Gen-Lug) (€)": [
         136922.00, 102256.14, 33484.00, 25690.50, 18740.00, 
@@ -353,8 +348,18 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
 
         st.markdown("#### 📋 Tabella Dati Fatturato (€)")
+        df_fat_tot = pd.concat([
+            df_fat,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Fatturato 2024": df_fat["Fatturato 2024"].sum(),
+                "Fatturato 2025": df_fat["Fatturato 2025"].sum(),
+                "Fatturato 2026": df_fat["Fatturato 2026"].sum()
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_fat.style.format({
+            df_fat_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Fatturato 2024": "€ {:,.2f}",
                 "Fatturato 2025": "€ {:,.2f}",
                 "Fatturato 2026": "€ {:,.2f}"
@@ -380,8 +385,18 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
 
         st.markdown("#### 📋 Tabella Dati Costi Personale (€)")
+        df_costi_tot = pd.concat([
+            df_costi,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Costi 2024": df_costi["Costi 2024"].sum(),
+                "Costi 2025": df_costi["Costi 2025"].sum(),
+                "Costi 2026": df_costi["Costi 2026"].sum()
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_costi.style.format({
+            df_costi_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Costi 2024": "€ {:,.2f}",
                 "Costi 2025": "€ {:,.2f}",
                 "Costi 2026": "€ {:,.2f}"
@@ -407,8 +422,17 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_dir), use_container_width=True)
 
         st.markdown("#### 📋 Tabella Dati Ore Dirette (h)")
+        df_ore_dir_tot = pd.concat([
+            df_ore_dirette,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Ore Dirette 2025": df_ore_dirette["Ore Dirette 2025"].sum(),
+                "Ore Dirette 2026": df_ore_dirette["Ore Dirette 2026"].sum()
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_ore_dirette.style.format({
+            df_ore_dir_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Ore Dirette 2025": "{:,.1f} h",
                 "Ore Dirette 2026": "{:,.1f} h"
             }),
@@ -433,8 +457,17 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_ind), use_container_width=True)
 
         st.markdown("#### 📋 Tabella Dati Ore Indirette (h)")
+        df_ore_ind_tot = pd.concat([
+            df_ore_indirette,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Ore Indirette 2025": df_ore_indirette["Ore Indirette 2025"].sum(),
+                "Ore Indirette 2026": df_ore_indirette["Ore Indirette 2026"].sum()
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_ore_indirette.style.format({
+            df_ore_ind_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Ore Indirette 2025": "{:,.1f} h",
                 "Ore Indirette 2026": "{:,.1f} h"
             }),
@@ -459,8 +492,18 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_media), use_container_width=True)
 
         st.markdown("#### 📋 Tabella Dati Media Oraria (€/h)")
+        df_media_tot = pd.concat([
+            df_media_oraria,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Media Oraria 2024": df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean(),
+                "Media Oraria 2025": df_media_oraria["Media Oraria 2025"][df_media_oraria["Media Oraria 2025"] > 0].mean(),
+                "Media Oraria 2026": df_media_oraria["Media Oraria 2026"][df_media_oraria["Media Oraria 2026"] > 0].mean()
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_media_oraria.style.format({
+            df_media_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Media Oraria 2024": "€ {:,.2f}",
                 "Media Oraria 2025": "€ {:,.2f}",
                 "Media Oraria 2026": "€ {:,.2f}"
@@ -472,7 +515,7 @@ if sezione == "📈 Dashboard Grafica":
     with t6:
         st.subheader("📋 Totale Parziale 2026 - Costi e Ore Personale")
         st.dataframe(
-            df_riassunto_2026.style.format({
+            df_riassunto_2026.style.apply(evidenzia_totale, col_chiave="COGNOME", axis=1).format({
                 "COSTO TOT": "€ {:,.2f}",
                 "ORE TOT": "{:,.1f}",
                 "COSTO ORARIO": "€ {:,.2f}"
@@ -506,8 +549,22 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_dip), use_container_width=True)
 
         st.markdown(f"#### 📋 Tabella Dati Mensili - {dip_scelto}")
+        tot_c_dip = df_dip["Costo Totale (€)"].sum()
+        tot_o_dip = df_dip["Ore Totali"].sum()
+        med_co_dip = (tot_c_dip / tot_o_dip) if tot_o_dip > 0 else 0
+
+        df_dip_tot = pd.concat([
+            df_dip,
+            pd.DataFrame([{
+                "Mese": "TOTALE",
+                "Costo Totale (€)": tot_c_dip,
+                "Ore Totali": tot_o_dip,
+                "Costo Orario (€/h)": med_co_dip
+            }])
+        ], ignore_index=True)
+
         st.dataframe(
-            df_dip.style.format({
+            df_dip_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                 "Costo Totale (€)": "€ {:,.2f}",
                 "Ore Totali": "{:,.1f} h",
                 "Costo Orario (€/h)": "€ {:,.2f}"
@@ -560,13 +617,8 @@ if sezione == "📈 Dashboard Grafica":
             }])
             df_cli_completo = pd.concat([df_cli_s, df_tot_riga], ignore_index=True)
 
-            def style_totale_gen(row):
-                if row["Cliente"] == "TOTALE FATTURATO":
-                    return ['background-color: #dbeafe; font-weight: bold; color: #1e40af'] * len(row)
-                return [''] * len(row)
-
             st.dataframe(
-                df_cli_completo.style.apply(style_totale_gen, axis=1).format({
+                df_cli_completo.style.apply(evidenzia_totale, col_chiave="Cliente", axis=1).format({
                     "Fatturato 2026 (Gen-Lug) (€)": "€ {:,.2f}",
                     "% Quota": "{:.2f} %"
                 }),
@@ -608,17 +660,12 @@ if sezione == "📈 Dashboard Grafica":
 
         df_cli_m_tot = pd.concat([df_cli_m, df_tot_cliente], ignore_index=True)
 
-        def style_totale_cli(row):
-            if row["Mese"] == "TOTALE":
-                return ['background-color: #dcfce7; font-weight: bold; color: #15803d'] * len(row)
-            return [''] * len(row)
-
         col_t1, col_t2 = st.columns([1, 1.2])
 
         with col_t1:
             st.markdown(f"#### 📄 Dettagli & Totale: **{cli_scelto}**")
             st.dataframe(
-                df_cli_m_tot.style.apply(style_totale_cli, axis=1).format({
+                df_cli_m_tot.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
                     "2026 (€)": "€ {:,.2f}",
                     "2025 (€)": "€ {:,.2f}",
                     "2024 (€)": "€ {:,.2f}"
