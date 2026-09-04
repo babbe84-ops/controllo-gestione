@@ -30,7 +30,7 @@ if not st.session_state["authenticated"]:
             st.error("Credenziali non valide")
     st.stop()
 
-# --- CARICAMENTO DATI FATTURATO E COSTI TOTALI ---
+# --- DATI FATTURATO E COSTI ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -149,9 +149,73 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI DETTAGLIO DIPENDENTI (MODELLO TABELLA RIASSUNTIVA 2026) ---
-dati_dipendenti = {
-    "MICHELA D'ALSAZIA": {
+# --- DATI RIASSUNTIVI ANNO 2026 PER DIPENDENTE ---
+df_riassunto_2026 = pd.DataFrame({
+    "COGNOME": [
+        "D'ALSAZIA",
+        "BASSISSI",
+        "CASELLI",
+        "LANZI",
+        "GUION",
+        "CAMPANINI",
+        "JOHNSON",
+        "RASENTI",
+        "MAGNO",
+        "SCANO",
+        "PETRO'",
+        "GRANDE",
+        "DEJVI (luglio-sett.)",
+    ],
+    "COSTO TOT": [
+        25885.34,
+        15535.51,
+        25770.31,
+        22431.26,
+        11440.63,
+        24780.83,
+        20065.46,
+        35537.75,
+        23986.59,
+        23853.41,
+        19098.31,
+        19631.44,
+        2642.86,
+    ],
+    "ORE TOT": [
+        1222.5,
+        1186.5,
+        1017.0,
+        1166.5,
+        741.0,
+        1203.0,
+        1033.5,
+        1341.0,
+        1207.5,
+        960.0,
+        1154.5,
+        709.5,
+        304.5,
+    ],
+    "COSTO ORARIO": [
+        21.17,
+        13.09,
+        25.34,
+        19.23,
+        15.44,
+        20.60,
+        19.42,
+        26.50,
+        19.86,
+        24.85,
+        16.54,
+        27.67,
+        8.68,
+    ],
+})
+
+# --- DATI DETTAGLIO MENSILE PER SINGOLO DIPENDENTE ---
+dati_dipendenti_mensili = {
+    "D'ALSAZIA": {
         "Costo": [
             3693.39,
             3960.66,
@@ -168,7 +232,7 @@ dati_dipendenti = {
         ],
         "Ore": [150.5, 166.5, 172.5, 168.5, 163.0, 168.0, 105.5, 0, 0, 0, 0, 0],
     },
-    "ANDREA BASSISSI": {
+    "BASSISSI": {
         "Costo": [
             2169.70,
             2337.50,
@@ -185,7 +249,7 @@ dati_dipendenti = {
         ],
         "Ore": [143.5, 160.0, 176.0, 168.0, 158.0, 157.0, 96.0, 0, 0, 0, 0, 0],
     },
-    "KATIA CASELLI": {
+    "CASELLI": {
         "Costo": [
             3504.50,
             3749.44,
@@ -202,7 +266,7 @@ dati_dipendenti = {
         ],
         "Ore": [125.0, 140.0, 151.0, 129.5, 137.5, 141.0, 86.0, 0, 0, 0, 0, 0],
     },
-    "FRANCESCO LANZI": {
+    "LANZI": {
         "Costo": [
             2949.79,
             3225.64,
@@ -219,7 +283,7 @@ dati_dipendenti = {
         ],
         "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0],
     },
-    "LORENZO GUION": {
+    "GUION": {
         "Costo": [
             1296.53,
             1452.13,
@@ -236,7 +300,7 @@ dati_dipendenti = {
         ],
         "Ore": [81.5, 96.0, 106.0, 86.5, 101.5, 101.0, 110.0, 0, 0, 0, 0, 0],
     },
-    "JESSICA CAMPANINI": {
+    "CAMPANINI": {
         "Costo": [
             3430.97,
             3447.45,
@@ -253,7 +317,7 @@ dati_dipendenti = {
         ],
         "Ore": [132.0, 137.5, 158.0, 155.5, 157.5, 159.0, 175.5, 0, 0, 0, 0, 0],
     },
-    "FRANCESCO RASENTI": {
+    "RASENTI": {
         "Costo": [
             4789.75,
             5702.35,
@@ -270,7 +334,7 @@ dati_dipendenti = {
         ],
         "Ore": [160.0, 199.0, 193.0, 152.0, 204.0, 179.0, 164.0, 0, 0, 0, 0, 0],
     },
-    "MATTIA SCANO": {
+    "SCANO": {
         "Costo": [
             3542.57,
             3758.97,
@@ -304,7 +368,7 @@ mesi = [
     "Dic",
 ]
 
-# --- INTERFACCIA WEB ---
+# --- INTERFACCIA STREAMLIT ---
 st.title("📊 Sintec S.r.l. - Controllo di Gestione")
 
 st.sidebar.header("Navigazione")
@@ -312,7 +376,6 @@ sezione = st.sidebar.radio(
     "Menu Principale", ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"]
 )
 
-# Pulsante per aprire il Notebook Google
 st.sidebar.markdown("---")
 st.sidebar.link_button(
     "📓 Apri Notebook Google",
@@ -329,7 +392,6 @@ if sezione == "📈 Dashboard Grafica":
         f"### 🎯 Risultati {anno_selezionato} in Confronto al **2025** (Anno di Riferimento)"
     )
 
-    # Calcolo KPI Anno Selezionato vs 2025
     tot_f_sel = df_fat[f"Fatturato_{anno_selezionato}"].sum()
     tot_f_2025 = df_fat["Fatturato_2025"].sum()
     diff_f = tot_f_sel - tot_f_2025
@@ -364,7 +426,7 @@ if sezione == "📈 Dashboard Grafica":
     t1, t2, t3 = st.tabs([
         "📊 Confronto Fatturato",
         "👥 Costi Totali Personale",
-        "📋 Dettaglio Dipendenti (Mese per Mese)",
+        "📋 Dettaglio Dipendenti",
     ])
 
     with t1:
@@ -397,15 +459,31 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_c, use_container_width=True)
 
     with t3:
-        st.subheader("📋 Tabella Riassuntiva Costi e Ore Dipendenti")
-        dipendente_scelto = st.selectbox(
-            "Seleziona Dipendente:", list(dati_dipendenti.keys())
+        st.subheader("📊 TOTALE ANNO 2026 - COSTI DEL PERSONALE")
+
+        # 1. TABELLA RIASSUNTIVA GENERALE
+        st.dataframe(
+            df_riassunto_2026.style.format({
+                "COSTO TOT": "€ {:,.2f}",
+                "ORE TOT": "{:,.1f}",
+                "COSTO ORARIO": "€ {:,.2f}",
+            }),
+            use_container_width=True,
+            height=490,
         )
 
-        costi_dip = dati_dipendenti[dipendente_scelto]["Costo"]
-        ore_dip = dati_dipendenti[dipendente_scelto]["Ore"]
+        st.markdown("---")
 
-        # Creazione DataFrame Mese per Mese
+        # 2. SELEZIONE E MESE PER MESE PER IL Dettaglio
+        st.subheader("🔎 Analisi Mese per Mese per Dipendente")
+        dipendente_scelto = st.selectbox(
+            "Seleziona un Dipendente per il dettaglio mensile:",
+            list(dati_dipendenti_mensili.keys()),
+        )
+
+        costi_dip = dati_dipendenti_mensili[dipendente_scelto]["Costo"]
+        ore_dip = dati_dipendenti_mensili[dipendente_scelto]["Ore"]
+
         df_dip = pd.DataFrame({
             "Mese": mesi,
             "Costo Totale (€)": costi_dip,
@@ -415,7 +493,6 @@ if sezione == "📈 Dashboard Grafica":
             df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
         ).fillna(0).round(2)
 
-        # Tabella formattata
         st.write(f"**Prospetto Mensile 2026 - {dipendente_scelto}**")
         st.dataframe(
             df_dip.style.format({
@@ -426,13 +503,12 @@ if sezione == "📈 Dashboard Grafica":
             use_container_width=True,
         )
 
-        # Grafico andamento
         fig_dip = px.bar(
             df_dip[df_dip["Ore Totali"] > 0],
             x="Mese",
             y="Costo Totale (€)",
             text_auto=",.0f",
-            title=f"Andamento Mensile Costo Totale per {dipendente_scelto}",
+            title=f"Andamento Mensile Costi - {dipendente_scelto}",
         )
         fig_dip.update_traces(textposition="outside")
         st.plotly_chart(fig_dip, use_container_width=True)
