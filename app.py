@@ -149,16 +149,30 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI DETTAGLIATI CLIENTI ---
-df_clienti_2026 = pd.DataFrame({
-    "Cliente": ["WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL", "SILVI S.R.L.", "CATTANI SPA", "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA", "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", "PRISMA S.P.A.", "I.E. PARK SRL", "ALTRI CLIENTI / MINORI"],
-    "Fatturato 2026 (Gen-Lug) (€)": [136922.00, 102256.14, 33484.00, 25690.50, 15372.00, 18740.00, 17577.00, 12218.00, 9133.00, 5238.00, 5175.00, 4603.50, 3273.00, 2640.00, 2227.50, 1860.00, 87540.19],
-    "Num Fatture": [19, 29, 6, 6, 7, 6, 2, 5, 3, 1, 3, 2, 1, 2, 2, 1, 12],
+# --- DATI DETTAGLIATI CLIENTI PERFETTAMENTE ALLINEATI ---
+totale_reale_gen_lug = df_fat["Fatturato 2026"].sum() # € 490.149,83
+
+df_clienti_principali = pd.DataFrame({
+    "Cliente": ["WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL", "SILVI S.R.L.", "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA", "CATTANI SPA", "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", "PRISMA S.P.A.", "I.E. PARK SRL"],
+    "Fatturato 2026 (Gen-Lug) (€)": [136922.00, 102256.14, 33484.00, 25690.50, 18740.00, 17577.00, 15372.00, 12218.00, 9133.00, 5238.00, 5175.00, 4603.50, 3273.00, 2640.00, 2227.50, 1860.00],
+    "Num Fatture": [19, 29, 6, 6, 6, 2, 7, 5, 3, 1, 3, 2, 1, 2, 2, 1],
 })
+
+# Calcolo automatico esatto della quota clienti minori/altri per garantire coincidenza perfetta
+somma_principali = df_clienti_principali["Fatturato 2026 (Gen-Lug) (€)"].sum()
+quota_altri = totale_reale_gen_lug - somma_principali
+
+df_altri = pd.DataFrame([{
+    "Cliente": "ALTRI CLIENTI / MINORI",
+    "Fatturato 2026 (Gen-Lug) (€)": quota_altri,
+    "Num Fatture": 12
+}])
+
+df_clienti_2026 = pd.concat([df_clienti_principali, df_altri], ignore_index=True)
 
 dati_clienti_mensili = {
     "WITTUR SPA": {"2026": [19638.0, 19653.0, 27121.5, 20090.5, 18483.0, 31936.0, 0.0], "2025": [15561.0, 13911.5, 18000.0, 16500.0, 17800.0, 18200.0, 19500.0], "2024": [12000.0, 14000.0, 17547.0, 16000.0, 17804.5, 16500.0, 23948.5]},
-    "SIDEL S.P.A.": {"2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 0.0], "2025": [9078.0, 13487.31, 11200.0, 12500.0, 14000.0, 11800.0, 12900.0], "2024": [11000.0, 12500.0, 13000.0, 10500.0, 11800.0, 12200.0, 14000.0]},
+    "SIDEL S.P.A.": {"2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 5123.04], "2025": [9078.0, 13487.31, 11200.0, 12500.0, 14000.0, 11800.0, 12900.0], "2024": [11000.0, 12500.0, 13000.0, 10500.0, 11800.0, 12200.0, 14000.0]},
     "CATTANI SPA": {"2026": [1918.0, 3290.0, 2674.0, 2996.0, 546.0, 1890.0, 2058.0], "2025": [1400.0, 1386.0, 1330.0, 2156.0, 1694.0, 2618.0, 3234.0], "2024": [1512.0, 1148.0, 1946.0, 1428.0, 1848.0, 1022.0, 2170.0]},
     "GAMMA MECCANICA S.p.A": {"2026": [1472.0, 480.0, 4868.0, 2832.0, 3264.0, 0.0, 2912.0], "2025": [0.0, 2070.0, 4650.0, 1920.0, 0.0, 2280.0, 0.0], "2024": [0.0, 0.0, 0.0, 2430.0, 4800.0, 2040.0, 0.0]},
     "GEA MECHANICAL EQUIPMENT": {"2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0], "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0]},
@@ -170,7 +184,6 @@ dati_clienti_mensili = {
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
-# FUNZIONE LAYOUT E OTTIMIZZAZIONE SCRITTE ANTI-SOVRAPPOSIZIONE
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
@@ -187,15 +200,13 @@ def layout_grafico_chiaro(fig):
             bgcolor="rgba(0,0,0,0)"
         ),
         uniformtext_minsize=8,
-        uniformtext_mode='hide'  # Nasconde automaticamente il testo se non entra nelle colonne per evitare sovrapposizioni
+        uniformtext_mode='hide'
     )
-    # Imposta la posizione del testo automatica e riduce la dimensione del font delle etichette
     fig.update_traces(
         textposition="auto",
         textfont_size=10
     )
     return fig
-
 
 # --- SIDEBAR ---
 st.sidebar.markdown("<h2 style='text-align: center; color: #1e3a8a;'>⚙️ Sintec App</h2>", unsafe_allow_html=True)
