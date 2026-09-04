@@ -149,7 +149,7 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI RIASSUNTIVI ANNO 2026 CON RIGA FINALE DI TOTALE SINTEC ---
+# --- DATI RIASSUNTIVI ANNO 2026 (PARZIALE GEN-LUG 2026) ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
         "D'ALSAZIA",
@@ -165,7 +165,7 @@ df_riassunto_2026 = pd.DataFrame({
         "PETRO'",
         "GRANDE",
         "DEJVI (luglio-sett.)",
-        "TOTALE SINTEC (MEDIA)",
+        "TOTALE SINTEC (MEDIA GEN-LUG)",
     ],
     "COSTO TOT": [
         25885.34,
@@ -392,8 +392,15 @@ if sezione == "📈 Dashboard Grafica":
         "Seleziona Anno da Analizzare", [2026, 2024]
     )
 
+    # Etichetta dinamica per evidenziare il parziale 2026
+    label_anno = (
+        "2026 (Parziale Gen–Lug)"
+        if anno_selezionato == 2026
+        else str(anno_selezionato)
+    )
+
     st.markdown(
-        f"### 🎯 Risultati {anno_selezionato} in Confronto al **2025** (Anno di Riferimento)"
+        f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno Completo di Riferimento)"
     )
 
     tot_f_sel = df_fat[f"Fatturato_{anno_selezionato}"].sum()
@@ -410,18 +417,18 @@ if sezione == "📈 Dashboard Grafica":
 
     col1, col2, col3 = st.columns(3)
     col1.metric(
-        f"Fatturato Totale {anno_selezionato}",
+        f"Fatturato Totale {label_anno}",
         f"€ {tot_f_sel:,.2f}",
         delta=f"€ {diff_f:,.2f} vs 2025",
     )
     col2.metric(
-        f"Costi Personale {anno_selezionato}",
+        f"Costi Personale {label_anno}",
         f"€ {tot_c_sel:,.2f}",
         delta=f"€ {diff_c:,.2f} vs 2025",
         delta_color="inverse",
     )
     col3.metric(
-        f"Margine Operativo {anno_selezionato}",
+        f"Margine Operativo {label_anno}",
         f"€ {mol_sel:,.2f}",
         delta=f"€ {diff_mol:,.2f} vs 2025",
     )
@@ -439,7 +446,7 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y=[f"Fatturato_{anno_selezionato}", "Fatturato_2025"],
             barmode="group",
-            title=f"Confronto Fatturato Mensile: {anno_selezionato} vs 2025",
+            title=f"Confronto Fatturato Mensile: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
             text_auto=",.0f",
         )
@@ -452,7 +459,7 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y=[f"Costi_{anno_selezionato}", "Costi_2025"],
             markers=True,
-            title=f"Confronto Costi Personale Mensili: {anno_selezionato} vs 2025",
+            title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
             text=[
                 f"€{val:,.0f}" if val > 0 else ""
@@ -463,11 +470,12 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_c, use_container_width=True)
 
     with t3:
-        st.subheader("📊 TOTALE ANNO 2026 - COSTI DEL PERSONALE")
+        st.subheader(
+            "📊 TOTALE ANNO 2026 (PARZIALE GEN–LUG) - COSTI DEL PERSONALE"
+        )
 
-        # Funzione di formattazione per evidenziare la riga di Totale Sintec
         def evidenzia_totale(row):
-            if row["COGNOME"] == "TOTALE SINTEC (MEDIA)":
+            if "TOTALE SINTEC" in row["COGNOME"]:
                 return [
                     "background-color: #fff3cd; font-weight: bold; color: #856404"
                 ] * len(row)
@@ -485,7 +493,7 @@ if sezione == "📈 Dashboard Grafica":
 
         st.markdown("---")
 
-        st.subheader("🔎 Analisi Mese per Mese per Dipendente")
+        st.subheader("🔎 Analisi Mese per Mese per Dipendente (Gen–Lug 2026)")
         dipendente_scelto = st.selectbox(
             "Seleziona un Dipendente per il dettaglio mensile:",
             list(dati_dipendenti_mensili.keys()),
@@ -503,7 +511,9 @@ if sezione == "📈 Dashboard Grafica":
             df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
         ).fillna(0).round(2)
 
-        st.write(f"**Prospetto Mensile 2026 - {dipendente_scelto}**")
+        st.write(
+            f"**Prospetto Mensile 2026 (Parziale Gen-Lug) - {dipendente_scelto}**"
+        )
         st.dataframe(
             df_dip.style.format({
                 "Costo Totale (€)": "€ {:,.2f}",
@@ -518,7 +528,7 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y="Costo Totale (€)",
             text_auto=",.0f",
-            title=f"Andamento Mensile Costi - {dipendente_scelto}",
+            title=f"Andamento Mensile Costi - {dipendente_scelto} (Gen–Lug 2026)",
         )
         fig_dip.update_traces(textposition="outside")
         st.plotly_chart(fig_dip, use_container_width=True)
@@ -533,7 +543,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Quanto abbiamo fatturato a Wittur nel 2026?",
+            placeholder="Es. Quanto abbiamo fatturato a Wittur nei primi mesi del 2026?",
         )
     with col2:
         st.write("Oppure parla:")
