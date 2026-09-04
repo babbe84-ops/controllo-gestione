@@ -46,7 +46,7 @@ df_fat = pd.DataFrame({
         "Nov",
         "Dic",
     ],
-    "Fatturato_2024": [
+    "Fatturato 2024": [
         57247.00,
         68184.47,
         80810.80,
@@ -60,7 +60,7 @@ df_fat = pd.DataFrame({
         72332.50,
         57421.08,
     ],
-    "Fatturato_2025": [
+    "Fatturato 2025": [
         57401.50,
         62787.31,
         72682.00,
@@ -74,7 +74,7 @@ df_fat = pd.DataFrame({
         64778.43,
         64324.52,
     ],
-    "Fatturato_2026": [
+    "Fatturato 2026": [
         58570.50,
         73584.46,
         75642.00,
@@ -105,7 +105,7 @@ df_costi = pd.DataFrame({
         "Nov",
         "Dic",
     ],
-    "Costi_2024": [
+    "Costi 2024": [
         30359.58,
         34197.57,
         43005.65,
@@ -119,7 +119,7 @@ df_costi = pd.DataFrame({
         36832.46,
         46703.16,
     ],
-    "Costi_2025": [
+    "Costi 2025": [
         32409.91,
         36319.18,
         36075.82,
@@ -133,7 +133,7 @@ df_costi = pd.DataFrame({
         41594.63,
         36510.16,
     ],
-    "Costi_2026": [
+    "Costi 2026": [
         34104.88,
         40913.02,
         39960.05,
@@ -149,7 +149,7 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI RIASSUNTIVI ANNO 2026 (PARZIALE GEN-LUG 2026) ---
+# --- DATI RIASSUNTIVI ANNO 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
         "D'ALSAZIA",
@@ -217,7 +217,6 @@ df_riassunto_2026 = pd.DataFrame({
     ],
 })
 
-# --- DATI DETTAGLIO MENSILE PER SINGOLO DIPENDENTE ---
 dati_dipendenti_mensili = {
     "D'ALSAZIA": {
         "Costo": [
@@ -392,7 +391,6 @@ if sezione == "📈 Dashboard Grafica":
         "Seleziona Anno da Analizzare", [2026, 2024]
     )
 
-    # Etichetta dinamica per evidenziare il parziale 2026
     label_anno = (
         "2026 (Parziale Gen–Lug)"
         if anno_selezionato == 2026
@@ -400,37 +398,60 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown(
-        f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno Completo di Riferimento)"
+        f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno di Riferimento)"
     )
 
-    tot_f_sel = df_fat[f"Fatturato_{anno_selezionato}"].sum()
-    tot_f_2025 = df_fat["Fatturato_2025"].sum()
-    diff_f = tot_f_sel - tot_f_2025
-
-    tot_c_sel = df_costi[f"Costi_{anno_selezionato}"].sum()
-    tot_c_2025 = df_costi["Costi_2025"].sum()
-    diff_c = tot_c_sel - tot_c_2025
-
+    # Calcolo KPI Anno Selezionato
+    tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
+    tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
-    mol_2025 = tot_f_2025 - tot_c_2025
-    diff_mol = mol_sel - mol_2025
+
+    # Calcolo KPI 2025 Totale Annuo e Parziale (Gen-Lug)
+    tot_f_2025_tot = df_fat["Fatturato 2025"].sum()
+    tot_f_2025_parz = df_fat["Fatturato 2025"].iloc[:7].sum()
+
+    tot_c_2025_tot = df_costi["Costi 2025"].sum()
+    tot_c_2025_parz = df_costi["Costi 2025"].iloc[:7].sum()
+
+    mol_2025_tot = tot_f_2025_tot - tot_c_2025_tot
+    mol_2025_parz = tot_f_2025_parz - tot_c_2025_parz
+
+    # Differenze rispetto all'anno totale 2025
+    diff_f = tot_f_sel - tot_f_2025_tot
+    diff_c = tot_c_sel - tot_c_2025_tot
+    diff_mol = mol_sel - mol_2025_tot
 
     col1, col2, col3 = st.columns(3)
+
+    # Column 1: Fatturato
     col1.metric(
         f"Fatturato Totale {label_anno}",
         f"€ {tot_f_sel:,.2f}",
-        delta=f"€ {diff_f:,.2f} vs 2025",
+        delta=f"€ {diff_f:,.2f} vs Tot 2025",
     )
+    col1.caption(
+        f"📌 **Dato 2025 Gen–Lug:** € {tot_f_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_f_2025_tot:,.2f}"
+    )
+
+    # Column 2: Costi Personale
     col2.metric(
         f"Costi Personale {label_anno}",
         f"€ {tot_c_sel:,.2f}",
-        delta=f"€ {diff_c:,.2f} vs 2025",
+        delta=f"€ {diff_c:,.2f} vs Tot 2025",
         delta_color="inverse",
     )
+    col2.caption(
+        f"📌 **Dato 2025 Gen–Lug:** € {tot_c_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {tot_c_2025_tot:,.2f}"
+    )
+
+    # Column 3: Margine Operativo
     col3.metric(
         f"Margine Operativo {label_anno}",
         f"€ {mol_sel:,.2f}",
-        delta=f"€ {diff_mol:,.2f} vs 2025",
+        delta=f"€ {diff_mol:,.2f} vs Tot 2025",
+    )
+    col3.caption(
+        f"📌 **Dato 2025 Gen–Lug:** € {mol_2025_parz:,.2f}  \n📌 **Dato 2025 Totale:** € {mol_2025_tot:,.2f}"
     )
 
     st.markdown("---")
@@ -444,7 +465,7 @@ if sezione == "📈 Dashboard Grafica":
         fig_f = px.bar(
             df_fat,
             x="Mese",
-            y=[f"Fatturato_{anno_selezionato}", "Fatturato_2025"],
+            y=[f"Fatturato {anno_selezionato}", "Fatturato 2025"],
             barmode="group",
             title=f"Confronto Fatturato Mensile: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
@@ -457,13 +478,13 @@ if sezione == "📈 Dashboard Grafica":
         fig_c = px.line(
             df_costi,
             x="Mese",
-            y=[f"Costi_{anno_selezionato}", "Costi_2025"],
+            y=[f"Costi {anno_selezionato}", "Costi 2025"],
             markers=True,
             title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
             text=[
                 f"€{val:,.0f}" if val > 0 else ""
-                for val in df_costi[f"Costi_{anno_selezionato}"]
+                for val in df_costi[f"Costi {anno_selezionato}"]
             ],
         )
         fig_c.update_traces(textposition="top center")
