@@ -12,15 +12,18 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- STILING CHIARO E MODERNO ---
+# --- STILE TEMA CHIARO E PULITO ---
 st.markdown(
     """
 <style>
+    /* Sfondo Globale Chiaro e Font */
     .stApp {
         background-color: #f8fafc;
         color: #0f172a;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
+    
+    /* Card KPI in stile Light */
     .kpi-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
@@ -47,6 +50,24 @@ st.markdown(
         color: #475569;
         margin-top: 6px;
     }
+    .badge-positive {
+        background-color: #dcfce7;
+        color: #15803d;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+    .badge-info {
+        background-color: #e0f2fe;
+        color: #0369a1;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    /* Stile dei Tab */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
         background-color: #f1f5f9;
@@ -98,7 +119,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI AMMINISTRATIVI (CONSOLIDATI FINO A LUGLIO 2026) ---
+# --- DATI GENERALI AMMINISTRATIVI (AGGIORNATI A LUGLIO 2026) ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -217,7 +238,7 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI DETTAGLIATI CLIENTI FINO A LUGLIO 2026 ---
+# --- DATI DETTAGLIATI CLIENTI (INCLUSI WITTUR E LUGLIO 2026) ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
         "WITTUR SPA",
@@ -229,8 +250,8 @@ df_clienti_2026 = pd.DataFrame({
         "ACMI BEVERAGE SPA",
         "GEA MECHANICAL EQUIPMENT",
         "CALF SPA",
-        "CSF INOX S.P.A.",
         "REGGIANA RIDUTTORI SRL",
+        "CSF INOX S.P.A.",
         "DIECI SRL",
         "ERRESSE Costmec",
         "JOHN BEAN TECHNOLOGIES",
@@ -248,8 +269,8 @@ df_clienti_2026 = pd.DataFrame({
         17577.00,
         12218.00,
         9133.00,
-        5175.00,
         5238.00,
+        5175.00,
         4603.50,
         3273.00,
         2640.00,
@@ -267,8 +288,8 @@ df_clienti_2026 = pd.DataFrame({
         2,
         5,
         3,
-        3,
         1,
+        3,
         2,
         1,
         2,
@@ -353,6 +374,10 @@ dati_clienti_mensili = {
     },
 }
 
+# Inizializza lo stato del cliente selezionato
+if "cliente_selezionato" not in st.session_state:
+    st.session_state["cliente_selezionato"] = "WITTUR SPA"
+
 
 def layout_grafico_chiaro(fig):
     fig.update_layout(
@@ -361,6 +386,14 @@ def layout_grafico_chiaro(fig):
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter, sans-serif", color="#0f172a"),
         margin=dict(l=20, r=20, t=40, b=20),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor="rgba(0,0,0,0)",
+        ),
     )
     return fig
 
@@ -385,12 +418,15 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    t1, t2 = st.tabs(["🍕 Analisi Avanzata Clienti & Fatturato", "📊 Indicatori Mese"])
+    t1, t2 = st.tabs(
+        ["🍕 Analisi Avanzata Clienti & Fatturato", "📊 Indicatori Mensili"]
+    )
 
     with t1:
         st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Lug 2026)")
 
         col_p1, col_p2 = st.columns([1.1, 1])
+
         with col_p1:
             fig_pie = px.pie(
                 df_clienti_2026,
@@ -398,14 +434,31 @@ if sezione == "📈 Dashboard Grafica":
                 names="Cliente",
                 hole=0.4,
                 color_discrete_sequence=px.colors.qualitative.Set3,
-                title="Quota % Fatturato per Cliente (Gen-Lug 2026)",
+                title="Quota % Fatturato per Cliente (Clicca per selezionare)",
             )
             fig_pie.update_traces(
                 textposition="inside", textinfo="percent+label"
             )
-            st.plotly_chart(
-                layout_grafico_chiaro(fig_pie), use_container_width=True
+
+            # DISABILITA IL NASCONDIMENTO DEI DATI AL CLICK SULLA LEGENDA
+            fig_pie.update_layout(
+                legend_itemclick=False, legend_itemdoubleclick=False
             )
+
+            # INTERCETTA IL CLICK PER APRIRE LA SCHEDA CLIENTE
+            selected_pie = st.plotly_chart(
+                layout_grafico_chiaro(fig_pie),
+                use_container_width=True,
+                on_select="rerun",
+                selection_mode="points",
+            )
+
+            if selected_pie and "selection" in selected_pie:
+                points = selected_pie["selection"].get("points", [])
+                if points:
+                    cli_cliccato = points[0].get("label")
+                    if cli_cliccato in dati_clienti_mensili:
+                        st.session_state["cliente_selezionato"] = cli_cliccato
 
         with col_p2:
             st.markdown("#### 🏆 Tabella Riepilogativa Clienti")
@@ -417,7 +470,7 @@ if sezione == "📈 Dashboard Grafica":
                 df_cli_s["Fatturato 2026 (Gen-Lug) (€)"] / tot_cli * 100
             ).round(2)
 
-            # Aggiunta riga Totale sotto la tabella principale
+            # Riga TOTALE sotto la tabella principale
             df_tot_riga = pd.DataFrame([{
                 "Cliente": "TOTALE FATTURATO",
                 "Fatturato 2026 (Gen-Lug) (€)": tot_cli,
@@ -447,10 +500,25 @@ if sezione == "📈 Dashboard Grafica":
         st.markdown("---")
         st.subheader("🔎 Dettaglio Mensile e Storico per Singolo Cliente")
 
+        # Selezione cliente sincronizzata tra grafica e menu
+        idx_default = (
+            list(dati_clienti_mensili.keys()).index(
+                st.session_state["cliente_selezionato"]
+            )
+            if st.session_state["cliente_selezionato"]
+            in dati_clienti_mensili
+            else 0
+        )
+
         cli_scelto = st.selectbox(
             "Seleziona Cliente da Verificare:",
             list(dati_clienti_mensili.keys()),
+            index=idx_default,
+            key="select_cli_box",
         )
+
+        # Aggiorna lo stato se l'utente cambia tendina
+        st.session_state["cliente_selezionato"] = cli_scelto
 
         df_cli_m = pd.DataFrame({
             "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug"],
@@ -459,7 +527,7 @@ if sezione == "📈 Dashboard Grafica":
             "2024 (€)": dati_clienti_mensili[cli_scelto]["2024"],
         })
 
-        # Calcolo dinamico riga Totale per il cliente selezionato
+        # Calcolo Totali Cliente
         tot_2026 = sum(dati_clienti_mensili[cli_scelto]["2026"])
         tot_2025 = sum(dati_clienti_mensili[cli_scelto]["2025"])
         tot_2024 = sum(dati_clienti_mensili[cli_scelto]["2024"])
@@ -503,17 +571,23 @@ if sezione == "📈 Dashboard Grafica":
                 color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
                 text_auto=",.0f",
             )
+            # Evita che cliccare sulla legenda del grafico mensile disattivi le barre
+            fig_cli_m.update_layout(
+                legend_itemclick=False, legend_itemdoubleclick=False
+            )
             st.plotly_chart(
                 layout_grafico_chiaro(fig_cli_m), use_container_width=True
             )
 
     with t2:
-        st.write("Sviluppi mensili fatturato generale e indicatori orari.")
+        st.write(
+            "Sezione evoluzione indicatori mensili, margine e ore lavorate."
+        )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     st.subheader("🤖 Assistente IA Gestionale")
     domanda = st.text_input(
-        "Chiedi all'Assistente sui clienti o sul mese di Luglio 2026:"
+        "Chiedi all'Assistente sui dati o sui clienti (es. Wittur, Sidel, etc.):"
     )
     if domanda and "OPENAI_API_KEY" in st.secrets:
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
