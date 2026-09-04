@@ -2,7 +2,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from openai import OpenAI
-from streamlit_mic_recorder import mic_recorder
 
 # --- CONFIGURAZIONE PAGINA STREAMLIT ---
 st.set_page_config(
@@ -16,14 +15,12 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-    /* Sfondo Globale e Font */
     .stApp {
         background-color: #f8fafc;
         color: #0f172a;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
     
-    /* Card KPI in stile Light */
     .kpi-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
@@ -61,7 +58,6 @@ st.markdown(
         font-size: 0.75rem;
     }
 
-    /* Stile Tab con scrolling orizzontale su schermi stretti */
     .stTabs [data-baseweb="tab-list"] {
         gap: 4px;
         background-color: #f1f5f9;
@@ -85,7 +81,6 @@ st.markdown(
         color: #ffffff !important;
     }
 
-    /* OTTIMIZZAZIONE SPECIFICA PER DISPOSITIVI MOBILI */
     @media (max-width: 768px) {
         .kpi-card {
             padding: 12px;
@@ -188,7 +183,7 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI DETTAGLIATI CLIENTI (INTEGRAZIONE SACMI / ACMI E TOTALE ALLINEATO) ---
+# --- DATI DETTAGLIATI CLIENTI ---
 totale_reale_gen_lug = df_fat["Fatturato 2026"].sum()
 
 df_clienti_principali = pd.DataFrame({
@@ -245,7 +240,6 @@ dati_clienti_mensili = {
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
-# LAYOUT ANTI-SOVRAPPOSIZIONE E OPTIMIZED MOBILE
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
@@ -282,7 +276,7 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    # METRICHE TOP DASHBOARD CON RAFFRONTO 2025 ED EFFETTIVO
+    # METRICHE TOP DASHBOARD
     tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
     tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
@@ -299,7 +293,7 @@ if sezione == "📈 Dashboard Grafica":
     delta_m = ((mol_26 - mol_25) / mol_25) * 100 if mol_25 != 0 else 0
 
     class_f = "kpi-delta-pos" if delta_f >= 0 else "kpi-delta-neg"
-    class_c = "kpi-delta-neg" if delta_c >= 0 else "kpi-delta-pos"  # Per i costi il segno è inverso
+    class_c = "kpi-delta-neg" if delta_c >= 0 else "kpi-delta-pos"
     class_m = "kpi-delta-pos" if delta_m >= 0 else "kpi-delta-neg"
 
     col_k1, col_k2, col_k3 = st.columns(3)
@@ -341,6 +335,7 @@ if sezione == "📈 Dashboard Grafica":
         "🍕 Analisi Clienti"
     ])
 
+    # TAB 1: FATTURATO
     with t1:
         st.subheader("📊 Confronto Fatturato Mensile Generale")
         fig_f = px.bar(
@@ -357,6 +352,17 @@ if sezione == "📈 Dashboard Grafica":
         fig_f.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
 
+        st.markdown("#### 📋 Tabella Dati Fatturato (€)")
+        st.dataframe(
+            df_fat.style.format({
+                "Fatturato 2024": "€ {:,.2f}",
+                "Fatturato 2025": "€ {:,.2f}",
+                "Fatturato 2026": "€ {:,.2f}"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 2: COSTI PERSONALE
     with t2:
         st.subheader("👥 Costi Personale Mensili")
         fig_c = px.bar(
@@ -373,6 +379,17 @@ if sezione == "📈 Dashboard Grafica":
         fig_c.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
 
+        st.markdown("#### 📋 Tabella Dati Costi Personale (€)")
+        st.dataframe(
+            df_costi.style.format({
+                "Costi 2024": "€ {:,.2f}",
+                "Costi 2025": "€ {:,.2f}",
+                "Costi 2026": "€ {:,.2f}"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 3: ORE DIRETTE
     with t3:
         st.subheader("⏱️ Ore Dirette Lavorate")
         fig_dir = px.bar(
@@ -389,6 +406,16 @@ if sezione == "📈 Dashboard Grafica":
         fig_dir.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_dir), use_container_width=True)
 
+        st.markdown("#### 📋 Tabella Dati Ore Dirette (h)")
+        st.dataframe(
+            df_ore_dirette.style.format({
+                "Ore Dirette 2025": "{:,.1f} h",
+                "Ore Dirette 2026": "{:,.1f} h"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 4: ORE INDIRETTE
     with t4:
         st.subheader("⚙️ Ore Indirette (Gestione/Struttura)")
         fig_ind = px.bar(
@@ -405,6 +432,16 @@ if sezione == "📈 Dashboard Grafica":
         fig_ind.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_ind), use_container_width=True)
 
+        st.markdown("#### 📋 Tabella Dati Ore Indirette (h)")
+        st.dataframe(
+            df_ore_indirette.style.format({
+                "Ore Indirette 2025": "{:,.1f} h",
+                "Ore Indirette 2026": "{:,.1f} h"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 5: MEDIA ORARIA
     with t5:
         st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
         fig_media = px.bar(
@@ -421,6 +458,17 @@ if sezione == "📈 Dashboard Grafica":
         fig_media.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_media), use_container_width=True)
 
+        st.markdown("#### 📋 Tabella Dati Media Oraria (€/h)")
+        st.dataframe(
+            df_media_oraria.style.format({
+                "Media Oraria 2024": "€ {:,.2f}",
+                "Media Oraria 2025": "€ {:,.2f}",
+                "Media Oraria 2026": "€ {:,.2f}"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 6: DETTAGLIO DIPENDENTI
     with t6:
         st.subheader("📋 Totale Parziale 2026 - Costi e Ore Personale")
         st.dataframe(
@@ -444,15 +492,6 @@ if sezione == "📈 Dashboard Grafica":
         })
         df_dip["Costo Orario (€/h)"] = (df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]).fillna(0).round(2)
 
-        st.dataframe(
-            df_dip.style.format({
-                "Costo Totale (€)": "€ {:,.2f}",
-                "Ore Totali": "{:,.1f} h",
-                "Costo Orario (€/h)": "€ {:,.2f}"
-            }),
-            use_container_width=True
-        )
-
         fig_dip = px.bar(
             df_dip[df_dip["Ore Totali"] > 0],
             x="Mese",
@@ -466,6 +505,17 @@ if sezione == "📈 Dashboard Grafica":
         fig_dip.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_dip), use_container_width=True)
 
+        st.markdown(f"#### 📋 Tabella Dati Mensili - {dip_scelto}")
+        st.dataframe(
+            df_dip.style.format({
+                "Costo Totale (€)": "€ {:,.2f}",
+                "Ore Totali": "{:,.1f} h",
+                "Costo Orario (€/h)": "€ {:,.2f}"
+            }),
+            use_container_width=True
+        )
+
+    # TAB 7: ANALISI CLIENTI
     with t7:
         st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Lug 2026)")
 
