@@ -108,7 +108,7 @@ st.markdown(
 # --- FUNZIONE STILE RIGHE DI TOTALE ---
 def evidenzia_totale(row, col_chiave="Mese"):
     val = str(row[col_chiave]).upper()
-    if val in ["TOTALE", "TOTALE FATTURATO", "TOTALE SINTEC (MEDIA GEN-LUG)"]:
+    if val in ["TOTALE", "TOTALE FATTURATO", "TOTALE SINTEC (MEDIA GEN-LUG)", "TOTALE YTD (7M)"]:
         return ['background-color: #dbeafe; font-weight: bold; color: #1e40af'] * len(row)
     elif "PREVISIONALE" in val:
         return ['background-color: #fef08a; font-weight: bold; color: #854d0e'] * len(row)
@@ -141,7 +141,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI (ORDINATI: 2026, 2025, 2024) ---
+# --- DATI GENERALI (AGGIORNATI CON FILE UFFICIALE COSTI DIPENDENTI 2025) ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 0, 0, 0, 0, 0],
@@ -152,7 +152,7 @@ df_fat = pd.DataFrame({
 df_costi = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Costi 2026": [34104.88, 40913.02, 39960.05, 39848.93, 41854.30, 38761.35, 32574.31, 0, 0, 0, 0, 0],
-    "Costi 2025": [32409.91, 36319.18, 36075.82, 38017.47, 41233.54, 42390.51, 36236.41, 26967.94, 39929.42, 40450.24, 41594.63, 36510.16],
+    "Costi 2025": [37513.85, 36318.82, 36075.82, 38017.47, 41233.54, 42640.51, 36236.41, 26967.94, 39929.42, 40450.24, 41594.63, 36510.16],
     "Costi 2024": [30359.58, 34197.57, 43005.65, 40156.84, 43703.97, 44361.46, 32676.33, 36758.37, 42287.59, 40908.77, 36832.46, 46703.16],
 })
 
@@ -178,9 +178,9 @@ df_media_oraria = pd.DataFrame({
 # --- DATI DIPENDENTI 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": ["D'ALSAZIA", "BASSISSI", "CASELLI", "LANZI", "GUION", "CAMPANINI", "JOHNSON", "RASENTI", "MAGNO", "SCANO", "PETRO'", "GRANDE", "DEJVI (luglio-sett.)", "TOTALE SINTEC (MEDIA GEN-LUG)"],
-    "COSTO TOT": [25885.34, 15535.51, 25770.31, 22431.26, 11440.63, 24780.83, 20065.46, 35537.75, 23986.59, 23853.41, 19098.31, 19631.44, 2642.86, 270659.70],
+    "COSTO TOT": [25885.34, 15535.51, 25770.31, 22431.26, 11440.63, 24780.83, 20065.46, 35537.75, 23986.59, 23853.41, 19098.31, 19631.44, 2642.86, 268016.84],
     "ORE TOT": [1222.5, 1186.5, 1017.0, 1166.5, 741.0, 1203.0, 1033.5, 1341.0, 1207.5, 960.0, 1154.5, 709.5, 304.5, 13247.0],
-    "COSTO ORARIO": [21.17, 13.09, 25.34, 19.23, 15.44, 20.60, 19.42, 26.50, 19.86, 24.85, 16.54, 27.67, 8.68, 20.43],
+    "COSTO ORARIO": [21.17, 13.09, 25.34, 19.23, 15.44, 20.60, 19.42, 26.50, 19.86, 24.85, 16.54, 27.67, 8.68, 20.23],
 })
 
 dati_dipendenti_mensili = {
@@ -281,7 +281,7 @@ with col_head_btn:
 
 if sezione == "📈 Dashboard Grafica":
 
-    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
+    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI E DATI 2025 CORRETTI
     tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
     tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
@@ -289,8 +289,8 @@ if sezione == "📈 Dashboard Grafica":
     delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
 
     tot_c_26 = df_costi["Costi 2026"].head(7).sum()
-    tot_c_25 = df_costi["Costi 2025"].head(7).sum()
-    tot_c_25_tot = df_costi["Costi 2025"].sum()
+    tot_c_25 = df_costi["Costi 2025"].head(7).sum()  # € 268.036,42
+    tot_c_25_tot = df_costi["Costi 2025"].sum()       # € 453.912,92
     prev_c_26 = (tot_c_26 / 7) * 12
     delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
 
