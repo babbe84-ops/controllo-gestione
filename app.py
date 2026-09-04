@@ -149,6 +149,97 @@ df_costi = pd.DataFrame({
     ],
 })
 
+# --- DATI ORE DIRETTE E ORE INDIRETTE ---
+df_ore_dirette = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Ore Dirette 2025": [
+        2017.0,
+        2087.0,
+        2317.5,
+        2155.5,
+        2251.5,
+        2221.0,
+        2084.0,
+        1308.0,
+        2454.0,
+        2355.0,
+        2134.0,
+        1641.5,
+    ],
+    "Ore Dirette 2026": [
+        1788.0,
+        2108.5,
+        2102.5,
+        2020.5,
+        2118.5,
+        2027.0,
+        1949.0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
+df_ore_indirette = pd.DataFrame({
+    "Mese": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic",
+    ],
+    "Ore Indirette 2025": [
+        193.0,
+        137.0,
+        81.5,
+        112.5,
+        155.5,
+        126.5,
+        97.5,
+        65.0,
+        163.5,
+        145.5,
+        124.5,
+        171.0,
+    ],
+    "Ore Indirette 2026": [
+        156.0,
+        237.0,
+        327.0,
+        222.0,
+        220.5,
+        134.0,
+        188.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+})
+
 # --- DATI RIASSUNTIVI ANNO 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
@@ -455,9 +546,11 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown("---")
-    t1, t2, t3 = st.tabs([
+    t1, t2, t3, t4, t5 = st.tabs([
         "📊 Confronto Fatturato",
         "👥 Costi Totali Personale",
+        "⏱️ Ore Dirette",
+        "⚙️ Ore Indirette",
         "📋 Dettaglio Dipendenti",
     ])
 
@@ -491,6 +584,67 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(fig_c, use_container_width=True)
 
     with t3:
+        # ANDAMENTO ORE DIRETTE
+        tot_dir_26 = df_ore_dirette["Ore Dirette 2026"].sum()
+        tot_dir_25_parz = df_ore_dirette["Ore Dirette 2025"].iloc[:7].sum()
+        diff_dir = tot_dir_26 - tot_dir_25_parz
+
+        st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo / Commessa)")
+        c_dir1, c_dir2 = st.columns(2)
+        c_dir1.metric(
+            "Ore Dirette 2026 (Gen–Lug)",
+            f"{tot_dir_26:,.1f} h",
+            delta=f"{diff_dir:,.1f} h vs 2025 Gen-Lug",
+        )
+        c_dir2.caption(
+            f"📌 **Ore Dirette 2025 (Gen–Lug):** {tot_dir_25_parz:,.1f} h  \n📌 **Ore Dirette 2025 (Totale Annuo):** {df_ore_dirette['Ore Dirette 2025'].sum():,.1f} h"
+        )
+
+        fig_dir = px.bar(
+            df_ore_dirette,
+            x="Mese",
+            y=["Ore Dirette 2026", "Ore Dirette 2025"],
+            barmode="group",
+            title=f"Confronto Ore Dirette Mensili: {label_anno} vs 2025",
+            labels={"value": "Ore (h)", "variable": "Anno"},
+            text_auto=",.1f",
+        )
+        fig_dir.update_traces(textposition="outside")
+        st.plotly_chart(fig_dir, use_container_width=True)
+
+    with t4:
+        # ANDAMENTO ORE INDIRETTE
+        tot_ind_26 = df_ore_indirette["Ore Indirette 2026"].sum()
+        tot_ind_25_parz = df_ore_indirette["Ore Indirette 2025"].iloc[:7].sum()
+        diff_ind = tot_ind_26 - tot_ind_25_parz
+
+        st.subheader(
+            "⚙️ Andamento Ore Indirette (Gestione / Struttura / Formazione)"
+        )
+        c_ind1, c_ind2 = st.columns(2)
+        c_ind1.metric(
+            "Ore Indirette 2026 (Gen–Lug)",
+            f"{tot_ind_26:,.1f} h",
+            delta=f"{diff_ind:,.1f} h vs 2025 Gen-Lug",
+            delta_color="inverse",
+        )
+        c_ind2.caption(
+            f"📌 **Ore Indirette 2025 (Gen–Lug):** {tot_ind_25_parz:,.1f} h  \n📌 **Ore Indirette 2025 (Totale Annuo):** {df_ore_indirette['Ore Indirette 2025'].sum():,.1f} h"
+        )
+
+        fig_ind = px.bar(
+            df_ore_indirette,
+            x="Mese",
+            y=["Ore Indirette 2026", "Ore Indirette 2025"],
+            barmode="group",
+            title=f"Confronto Ore Indirette Mensili: {label_anno} vs 2025",
+            labels={"value": "Ore (h)", "variable": "Anno"},
+            text_auto=",.1f",
+        )
+        fig_ind.update_traces(textposition="outside")
+        st.plotly_chart(fig_ind, use_container_width=True)
+
+    with t5:
         st.subheader(
             "📊 TOTALE ANNO 2026 (PARZIALE GEN–LUG) - COSTI DEL PERSONALE"
         )
@@ -564,7 +718,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col1:
         domanda = st.text_input(
             "Scrivi una domanda:",
-            placeholder="Es. Qual è la differenza di fatturato parziale da gennaio a luglio tra i due anni?",
+            placeholder="Es. Qual è l'andamento delle ore indirette nel 2026 rispetto al 2025?",
         )
     with col2:
         st.write("Oppure parla:")
@@ -579,19 +733,17 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
         st.markdown("---")
         st.markdown("### 💡 Risposta dell'Assistente:")
 
-        # Gestione con OpenAI API Key nei Secrets di Streamlit
         if "OPENAI_API_KEY" in st.secrets:
             try:
                 prompt_sistema = """
                 Sei l'assistente virtuale di Controllo di Gestione di Sintec S.r.l.
                 Rispondi in modo professionale, sintetico e preciso.
                 Dati aziendali principali:
-                - Fatturato 2026 (Gen-Lug): € 490.149,83
-                - Fatturato 2025 (Gen-Lug): € 470.133,63
-                - Differenza Parziale Fatturato (Gen-Lug): +€ 20.016,20 (+4,26%)
-                - Fatturato 2025 Totale Annuo: € 801.134,71
+                - Fatturato 2026 (Gen-Lug): € 490.149,83 | 2025 (Gen-Lug): € 470.133,63
                 - Costi Personale 2026 (Gen-Lug): € 268.016,84 (13.247 ore totali)
                 - Costo Orario Medio Sintec 2026: € 20,43/h
+                - Ore Dirette 2026 (Gen-Lug): 14.114,0 h | 2025 (Gen-Lug): 15.134,0 h
+                - Ore Indirette 2026 (Gen-Lug): 1.488,5 h | 2025 (Gen-Lug): 903,5 h
                 """
                 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                 response = client.chat.completions.create(
@@ -606,39 +758,41 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
             except Exception as e:
                 st.error(f"Errore nell'elaborazione dell'API OpenAI: {e}")
 
-        # Motore locale intelligente con generazione automatica del grafico
         domanda_lower = domanda.lower()
 
-        if (
-            "differenza" in domanda_lower or "grafico" in domanda_lower
-        ) and "fatturato" in domanda_lower:
-            if "OPENAI_API_KEY" not in st.secrets:
-                st.success(
-                    "**Analisi Differenza Fatturato Parziale (Gennaio – Luglio):**\n\n"
-                    "* **Fatturato 2026 (Gen–Lug):** € 490.149,83\n"
-                    "* **Fatturato 2025 (Gen–Lug):** € 470.133,63\n"
-                    "* **Differenza Parziale:** **+€ 20.016,20** (**+4,26%** di crescita nel 2026 rispetto al 2025)."
-                )
-
-            # Generazione del Grafico dedicato richiesto dall'Assistente
-            df_assistente = df_fat.iloc[:7].copy()
-            df_assistente["Differenza (€)"] = (
-                df_assistente["Fatturato 2026"] - df_assistente["Fatturato 2025"]
+        # Grafici condizionali generati su richiesta
+        if "ore dirette" in domanda_lower:
+            fig_a = px.bar(
+                df_ore_dirette.iloc[:7],
+                x="Mese",
+                y=["Ore Dirette 2026", "Ore Dirette 2025"],
+                barmode="group",
+                title="⏱️ Andamento Ore Dirette: 2026 vs 2025 (Gen-Lug)",
+                text_auto=",.1f",
             )
+            fig_a.update_traces(textposition="outside")
+            st.plotly_chart(fig_a, use_container_width=True)
 
-            fig_assistente = px.bar(
-                df_assistente,
+        elif "ore indirette" in domanda_lower:
+            fig_b = px.bar(
+                df_ore_indirette.iloc[:7],
+                x="Mese",
+                y=["Ore Indirette 2026", "Ore Indirette 2025"],
+                barmode="group",
+                title="⚙️ Andamento Ore Indirette: 2026 vs 2025 (Gen-Lug)",
+                text_auto=",.1f",
+            )
+            fig_b.update_traces(textposition="outside")
+            st.plotly_chart(fig_b, use_container_width=True)
+
+        elif "fatturato" in domanda_lower or "grafico" in domanda_lower:
+            fig_c = px.bar(
+                df_fat.iloc[:7],
                 x="Mese",
                 y=["Fatturato 2026", "Fatturato 2025"],
                 barmode="group",
-                title="📈 Grafico Generato dall'Assistente: Confronto Parziale Gen–Lug (2026 vs 2025)",
-                labels={"value": "Euro (€)", "variable": "Anno"},
+                title="📊 Andamento Fatturato: 2026 vs 2025 (Gen-Lug)",
                 text_auto=",.0f",
             )
-            fig_assistente.update_traces(textposition="outside")
-            st.plotly_chart(fig_assistente, use_container_width=True)
-
-        elif "OPENAI_API_KEY" not in st.secrets:
-            st.info(
-                f"Richiesta ricevuta: **'{domanda}'**. Per abilitare risposte libere e analisi avanzate su qualsiasi domanda, inserisci la tua `OPENAI_API_KEY` nei Secrets della tua app su Streamlit Cloud."
-            )
+            fig_c.update_traces(textposition="outside")
+            st.plotly_chart(fig_c, use_container_width=True)
