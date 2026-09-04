@@ -7,7 +7,7 @@ import streamlit as st
 from openai import OpenAI
 from streamlit_mic_recorder import mic_recorder
 
-# --- CONFIGURAZIONE PAGINA ---
+# --- CONFIGURAZIONE PAGINA STREAMLIT ---
 st.set_page_config(
     page_title="Sintec S.r.l. - Controllo di Gestione",
     page_icon="📊",
@@ -15,91 +15,90 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- INIEZIONE CSS PER DESIGN RESPONSIVE & MODERNO ---
+# --- INIEZIONE CSS PER TEMA CHIARO, MODERNO E RESPONSIVE ---
 st.markdown(
     """
 <style>
-    /* Gradient Background & Fonts */
+    /* Sfondo globale chiaro e Font pulito */
     .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #f8fafc;
+        background-color: #f8fafc;
+        color: #0f172a;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
     
-    /* Card Glassmorphism per KPI e Sezioni */
+    /* Card Bianchi Moderni con Bordo Morbido e Ombra Leggera */
     .kpi-card {
-        background: rgba(30, 41, 59, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         padding: 20px;
         margin-bottom: 15px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .kpi-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
     }
     
     .kpi-title {
         font-size: 0.85rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #94a3b8;
+        color: #64748b;
         margin-bottom: 6px;
     }
     .kpi-value {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #f8fafc;
+        color: #0f172a;
         line-height: 1.2;
     }
     .kpi-subtitle {
-        font-size: 0.78rem;
-        color: #cbd5e1;
+        font-size: 0.8rem;
+        color: #475569;
         margin-top: 8px;
+        line-height: 1.4;
     }
     .badge-positive {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        background-color: #dcfce7;
+        color: #15803d;
         padding: 4px 8px;
         border-radius: 6px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.75rem;
     }
     .badge-info {
-        background: rgba(56, 189, 248, 0.2);
-        color: #38bdf8;
+        background-color: #e0f2fe;
+        color: #0369a1;
         padding: 4px 8px;
         border-radius: 6px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.75rem;
     }
 
-    /* Style dei Tab e Pulsanti */
+    /* Style dei Tab Moderni Chiari */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        background-color: rgba(15, 23, 42, 0.6);
-        padding: 8px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: #f1f5f9;
+        padding: 6px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 45px;
-        border-radius: 8px;
-        color: #94a3b8;
+        height: 42px;
+        border-radius: 6px;
+        color: #475569;
         font-weight: 600;
         border: none;
         padding: 0 16px;
         transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        background-color: #2563eb !important;
         color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
     }
 
     /* Ottimizzazione Mobile Responsive */
@@ -118,7 +117,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
     st.markdown(
-        "<div style='text-align: center; margin-top: 50px;'><h1>🔒 Accesso Riservato</h1><p style='color: #94a3b8;'>Sintec S.r.l. - Controllo di Gestione</p></div>",
+        "<div style='text-align: center; margin-top: 50px;'><h1 style='color:#0f172a;'>🔒 Accesso Riservato</h1><p style='color: #64748b;'>Sintec S.r.l. - Controllo di Gestione</p></div>",
         unsafe_allow_html=True,
     )
     col_l1, col_l2, col_l3 = st.columns([1, 1.2, 1])
@@ -127,7 +126,7 @@ if not st.session_state["authenticated"]:
             username = st.text_input("Username", key="username")
             password = st.text_input("Password", type="password", key="password")
             submit_button = st.form_submit_button(
-                "🚀 Accedi al Dashboard", use_container_width=True
+                "🚀 Accedi alla Dashboard", use_container_width=True
             )
 
         if submit_button:
@@ -139,7 +138,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- CARICAMENTO DATI FONDAMENTALI ---
+# --- DATI FATTURATO E COSTI MESI ANNO ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -407,38 +406,39 @@ df_media_oraria = pd.DataFrame({
     ],
 })
 
+# --- DATI DETTAGLIATI CLIENTI (RICAVATI DALLE FATTURE EMESSE NEL FILE) ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
-        "ACMI BEVERAGE SPA",
-        "ACMI LABELLING SRL",
-        "CALF SPA",
         "CATTANI SPA",
-        "CSF INOX S.P.A.",
-        "DIECI SRL",
-        "ERRESSE Costmec",
-        "JOHN BEAN TECHNOLOGIES",
         "GAMMA MECCANICA S.p.A",
+        "ACMI BEVERAGE SPA",
+        "CALF SPA",
         "GEA MECHANICAL EQUIPMENT",
+        "ACMI LABELLING SRL",
         "REGGIANA RIDUTTORI SRL",
+        "CSF INOX S.P.A.",
+        "ERRESSE Costmec",
+        "DIECI SRL",
+        "JOHN BEAN TECHNOLOGIES",
         "PRISMA S.P.A.",
         "I.E. PARK SRL",
-        "ALTRI CLIENTI",
+        "ALTRI CLIENTI / MINORI",
     ],
-    "Fatturato 2026": [
+    "Fatturato 2026 (€)": [
+        14882.00,
+        15828.00,
         17577.00,
-        6908.00,
         9133.00,
-        13314.00,
-        3975.00,
-        2790.00,
-        3273.00,
-        2640.00,
-        12916.00,
-        9393.00,
+        10253.00,
+        6908.00,
         5238.00,
+        5175.00,
+        3273.00,
+        4603.50,
+        2640.00,
         2227.50,
         1860.00,
-        399129.93,
+        390551.83,
     ],
 })
 
@@ -467,6 +467,11 @@ dati_clienti_mensili = {
         "2026": [6784.0, 0.0, 10793.0, 0.0, 0.0, 0.0, 0.0],
         "2025": [11262.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
+    "GEA MECHANICAL EQUIPMENT": {
+        "2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0],
+        "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0],
+        "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0],
     },
 }
 
@@ -606,74 +611,6 @@ dati_dipendenti_mensili = {
         ],
         "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0],
     },
-    "GUION": {
-        "Costo": [
-            1296.53,
-            1452.13,
-            1912.60,
-            1518.40,
-            1779.25,
-            1801.12,
-            1680.60,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [81.5, 96.0, 106.0, 86.5, 101.5, 101.0, 110.0, 0, 0, 0, 0, 0],
-    },
-    "CAMPANINI": {
-        "Costo": [
-            3430.97,
-            3447.45,
-            3523.93,
-            3480.09,
-            3647.24,
-            3701.70,
-            3549.45,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [132.0, 137.5, 158.0, 155.5, 157.5, 159.0, 175.5, 0, 0, 0, 0, 0],
-    },
-    "RASENTI": {
-        "Costo": [
-            4789.75,
-            5702.35,
-            4906.62,
-            4697.05,
-            6054.25,
-            4722.98,
-            4664.75,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [160.0, 199.0, 193.0, 152.0, 204.0, 179.0, 164.0, 0, 0, 0, 0, 0],
-    },
-    "SCANO": {
-        "Costo": [
-            3542.57,
-            3758.97,
-            2634.49,
-            3019.63,
-            3787.61,
-            3779.72,
-            3330.42,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [143.5, 153.5, 72.0, 104.0, 156.5, 150.0, 101.0, 0, 0, 0, 0, 0],
-    },
 }
 
 mesi = [
@@ -693,7 +630,7 @@ mesi = [
 
 # --- SIDEBAR E NAVIGAZIONE ---
 st.sidebar.markdown(
-    "<h2 style='text-align: center; color: #38bdf8;'>⚙️ Sintec App</h2>",
+    "<h2 style='text-align: center; color: #1e3a8a;'>⚙️ Sintec App</h2>",
     unsafe_allow_html=True,
 )
 sezione = st.sidebar.radio(
@@ -708,13 +645,14 @@ st.sidebar.link_button(
     use_container_width=True,
 )
 
-# HELPER PER GRAFICI CON DESIGN DARK UNIFORME
-def layout_grafico_scuro(fig):
+
+# HELPER PER GRAFICI CON DESIGN CHIARO & PULITO
+def layout_grafico_chiaro(fig):
     fig.update_layout(
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", color="#f8fafc"),
+        font=dict(family="Inter, sans-serif", color="#0f172a"),
         margin=dict(l=20, r=20, t=50, b=30),
         legend=dict(
             orientation="h",
@@ -769,7 +707,7 @@ if sezione == "📈 Dashboard Grafica":
     mol_2025_tot = tot_f_2025_tot - tot_c_2025_tot
     mol_2025_parz = tot_f_2025_parz - tot_c_2025_parz
 
-    # --- CARD KPI CUSTOM RESPONSIVE ---
+    # --- CARD KPI CUSTOM RESPONSIVE CON DESIGN CHIARO ---
     col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
 
     with col_kpi1:
@@ -792,7 +730,7 @@ if sezione == "📈 Dashboard Grafica":
             f"""
         <div class="kpi-card">
             <div class="kpi-title">Costi Totali Personale</div>
-            <div class="kpi-value" style="color: #f43f5e;">€ {tot_c_sel:,.2f}</div>
+            <div class="kpi-value" style="color: #e11d48;">€ {tot_c_sel:,.2f}</div>
             <div style="margin-top:8px;">
                 <span class="badge-info">🔮 Previsionale 12M: € {prev_c_sel:,.2f}</span>
             </div>
@@ -807,7 +745,7 @@ if sezione == "📈 Dashboard Grafica":
             f"""
         <div class="kpi-card">
             <div class="kpi-title">Margine Operativo</div>
-            <div class="kpi-value" style="color: #10b981;">€ {mol_sel:,.2f}</div>
+            <div class="kpi-value" style="color: #16a34a;">€ {mol_sel:,.2f}</div>
             <div style="margin-top:8px;">
                 <span class="badge-positive">🔮 Previsionale 12M: € {prev_mol_sel:,.2f}</span>
             </div>
@@ -819,7 +757,7 @@ if sezione == "📈 Dashboard Grafica":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- TABBED INTERFACE CON ICONE ---
+    # --- TABBED INTERFACE ---
     t1, t2, t3, t4, t5, t6, t7 = st.tabs([
         "📊 Fatturato",
         "👥 Costi Personale",
@@ -838,12 +776,12 @@ if sezione == "📈 Dashboard Grafica":
             barmode="group",
             title=f"Confronto Fatturato Mensile: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
-            color_discrete_sequence=["#38bdf8", "#818cf8"],
+            color_discrete_sequence=["#2563eb", "#93c5fd"],
             text_auto=",.0f",
         )
         fig_f.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_f), use_container_width=True
+            layout_grafico_chiaro(fig_f), use_container_width=True
         )
 
     with t2:
@@ -854,12 +792,12 @@ if sezione == "📈 Dashboard Grafica":
             barmode="group",
             title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
-            color_discrete_sequence=["#f43f5e", "#fb7185"],
+            color_discrete_sequence=["#e11d48", "#fda4af"],
             text_auto=",.0f",
         )
         fig_c.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_c), use_container_width=True
+            layout_grafico_chiaro(fig_c), use_container_width=True
         )
 
     with t3:
@@ -881,12 +819,12 @@ if sezione == "📈 Dashboard Grafica":
             y=["Ore Dirette 2026", "Ore Dirette 2025"],
             barmode="group",
             title=f"Confronto Ore Dirette: {label_anno} vs 2025",
-            color_discrete_sequence=["#34d399", "#059669"],
+            color_discrete_sequence=["#16a34a", "#86efac"],
             text_auto=",.1f",
         )
         fig_dir.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_dir), use_container_width=True
+            layout_grafico_chiaro(fig_dir), use_container_width=True
         )
 
     with t4:
@@ -908,12 +846,12 @@ if sezione == "📈 Dashboard Grafica":
             y=["Ore Indirette 2026", "Ore Indirette 2025"],
             barmode="group",
             title=f"Confronto Ore Indirette: {label_anno} vs 2025",
-            color_discrete_sequence=["#fbbf24", "#d97706"],
+            color_discrete_sequence=["#d97706", "#fde047"],
             text_auto=",.1f",
         )
         fig_ind.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_ind), use_container_width=True
+            layout_grafico_chiaro(fig_ind), use_container_width=True
         )
 
     with t5:
@@ -930,12 +868,12 @@ if sezione == "📈 Dashboard Grafica":
             ],
             barmode="group",
             title="Confronto Media Oraria Fatturato (€/h)",
-            color_discrete_sequence=["#a855f7", "#c084fc", "#e9d5ff"],
+            color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
             text_auto=",.2f",
         )
         fig_media.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_media), use_container_width=True
+            layout_grafico_chiaro(fig_media), use_container_width=True
         )
 
     with t6:
@@ -944,7 +882,7 @@ if sezione == "📈 Dashboard Grafica":
         def style_totale(row):
             if "TOTALE SINTEC" in str(row["COGNOME"]):
                 return [
-                    "background-color: rgba(59, 130, 246, 0.2); font-weight: bold; color: #60a5fa"
+                    "background-color: #dbeafe; font-weight: bold; color: #1e40af"
                 ] * len(row)
             return [""] * len(row)
 
@@ -987,47 +925,50 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y="Costo Totale (€)",
             text_auto=",.0f",
-            color_discrete_sequence=["#38bdf8"],
+            color_discrete_sequence=["#2563eb"],
             title=f"Andamento Mensile Costi - {dip_scelto}",
         )
         fig_dip.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_dip), use_container_width=True
+            layout_grafico_chiaro(fig_dip), use_container_width=True
         )
 
     with t7:
-        st.subheader("🍕 Quota Fatturato per Cliente")
+        st.subheader(
+            "🍕 Ripartizione e Dettaglio Completo Fatturato per Cliente"
+        )
 
         col_p1, col_p2 = st.columns([1.1, 1])
 
         with col_p1:
             fig_pie = px.pie(
                 df_clienti_2026,
-                values="Fatturato 2026",
+                values="Fatturato 2026 (€)",
                 names="Cliente",
                 hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Pastel,
+                color_discrete_sequence=px.colors.qualitative.Set3,
+                title="Quota % sul Totale Fatturato (2026 Gen-Lug)",
             )
             fig_pie.update_traces(
                 textposition="inside", textinfo="percent+label"
             )
             st.plotly_chart(
-                layout_grafico_scuro(fig_pie), use_container_width=True
+                layout_grafico_chiaro(fig_pie), use_container_width=True
             )
 
         with col_p2:
-            st.markdown("#### 🏆 Graduatoria Clienti (2026 Gen–Lug)")
+            st.markdown("#### 🏆 Dettaglio Fatture Emesse per Cliente (2026)")
             df_cli_s = df_clienti_2026.sort_values(
-                by="Fatturato 2026", ascending=False
+                by="Fatturato 2026 (€)", ascending=False
             ).reset_index(drop=True)
-            tot_cli = df_cli_s["Fatturato 2026"].sum()
+            tot_cli = df_cli_s["Fatturato 2026 (€)"].sum()
             df_cli_s["% Quota"] = (
-                df_cli_s["Fatturato 2026"] / tot_cli * 100
+                df_cli_s["Fatturato 2026 (€)"] / tot_cli * 100
             ).round(2)
 
             st.dataframe(
                 df_cli_s.style.format({
-                    "Fatturato 2026": "€ {:,.2f}",
+                    "Fatturato 2026 (€)": "€ {:,.2f}",
                     "% Quota": "{:.2f} %",
                 }),
                 use_container_width=True,
@@ -1035,9 +976,10 @@ if sezione == "📈 Dashboard Grafica":
             )
 
         st.markdown("---")
-        st.subheader("🔎 Storico Mensile del Singolo Cliente")
+        st.subheader("🔎 Analisi e Confronto Mensile del Singolo Cliente")
         cli_scelto = st.selectbox(
-            "Seleziona Cliente:", list(dati_clienti_mensili.keys())
+            "Seleziona Cliente da Analizzare:",
+            list(dati_clienti_mensili.keys()),
         )
 
         df_cli_m = pd.DataFrame({
@@ -1061,13 +1003,13 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y=["2026 (€)", "2025 (€)", "2024 (€)"],
             barmode="group",
-            title=f"Storico Mensile: {cli_scelto}",
-            color_discrete_sequence=["#38bdf8", "#818cf8", "#c084fc"],
+            title=f"Storico Mensile Fatturato: {cli_scelto}",
+            color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
             text_auto=",.0f",
         )
         fig_cli_m.update_traces(textposition="outside")
         st.plotly_chart(
-            layout_grafico_scuro(fig_cli_m), use_container_width=True
+            layout_grafico_chiaro(fig_cli_m), use_container_width=True
         )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
@@ -1080,7 +1022,7 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
     with col_a1:
         domanda = st.text_input(
             "Chiedi all'Assistente:",
-            placeholder="Es. Qual è il previsionale del fatturato 2026 a 12 mesi?",
+            placeholder="Es. Qual è il cliente con maggior fatturato nel 2026?",
         )
     with col_a2:
         st.write("🎙️ Input Vocale:")
