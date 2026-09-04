@@ -1,8 +1,5 @@
-import io
-import os
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 from openai import OpenAI
 from streamlit_mic_recorder import mic_recorder
@@ -15,18 +12,18 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- INIEZIONE CSS PER TEMA CHIARO, MODERNO E RESPONSIVE ---
+# --- INIEZIONE CSS PER TEMA CHIARO E GRAFICA PULITA ---
 st.markdown(
     """
 <style>
-    /* Sfondo globale chiaro e Font pulito */
+    /* Sfondo Globale Chiaro */
     .stApp {
         background-color: #f8fafc;
         color: #0f172a;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
     
-    /* Card Bianchi Moderni con Bordo Morbido e Ombra Leggera */
+    /* Card KPI in stile Light Mode */
     .kpi-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
@@ -34,13 +31,7 @@ st.markdown(
         padding: 20px;
         margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-    }
-    
     .kpi-title {
         font-size: 0.85rem;
         font-weight: 700;
@@ -59,7 +50,6 @@ st.markdown(
         font-size: 0.8rem;
         color: #475569;
         margin-top: 8px;
-        line-height: 1.4;
     }
     .badge-positive {
         background-color: #dcfce7;
@@ -78,33 +68,25 @@ st.markdown(
         font-size: 0.75rem;
     }
 
-    /* Style dei Tab Moderni Chiari */
+    /* Stile Tab Moderni */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 6px;
         background-color: #f1f5f9;
         padding: 6px;
         border-radius: 10px;
         border: 1px solid #cbd5e1;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 42px;
+        height: 40px;
         border-radius: 6px;
         color: #475569;
         font-weight: 600;
         border: none;
-        padding: 0 16px;
-        transition: all 0.2s ease;
+        padding: 0 14px;
     }
     .stTabs [aria-selected="true"] {
         background-color: #2563eb !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-    }
-
-    /* Ottimizzazione Mobile Responsive */
-    @media (max-width: 768px) {
-        .kpi-value { font-size: 1.4rem; }
-        .stTabs [data-baseweb="tab"] { font-size: 0.8rem; padding: 0 8px; }
     }
 </style>
 """,
@@ -138,7 +120,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI FATTURATO E COSTI MESI ANNO ---
+# --- DATI FATTURATO E COSTI ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -406,43 +388,121 @@ df_media_oraria = pd.DataFrame({
     ],
 })
 
-# --- DATI DETTAGLIATI CLIENTI (RICAVATI DALLE FATTURE EMESSE NEL FILE) ---
+# --- DATI CLIENTI AGGIORNATI DAI REPORT DEL NOTEBOOK ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
-        "CATTANI SPA",
-        "GAMMA MECCANICA S.p.A",
-        "ACMI BEVERAGE SPA",
-        "CALF SPA",
-        "GEA MECHANICAL EQUIPMENT",
+        "WITTUR SPA",
+        "SIDEL S.P.A.",
         "ACMI LABELLING SRL",
+        "SILVI S.R.L.",
+        "ACMI BEVERAGE SPA",
+        "GAMMA MECCANICA S.p.A",
+        "CATTANI SPA",
+        "GEA MECHANICAL EQUIPMENT",
+        "CALF SPA",
         "REGGIANA RIDUTTORI SRL",
         "CSF INOX S.P.A.",
-        "ERRESSE Costmec",
+        "WIPRO FERRETTO",
         "DIECI SRL",
+        "ERRESSE Costmec",
         "JOHN BEAN TECHNOLOGIES",
+        "STV DI SALATI G. & C.",
         "PRISMA S.P.A.",
         "I.E. PARK SRL",
         "ALTRI CLIENTI / MINORI",
     ],
-    "Fatturato 2026 (€)": [
-        14882.00,
-        15828.00,
+    "Fatturato 2026 Gen-Giu (€)": [
+        136922.00,
+        102256.14,
+        33484.00,
+        25690.50,
         17577.00,
-        9133.00,
+        15828.00,
+        13314.00,
         10253.00,
-        6908.00,
+        9133.00,
         5238.00,
-        5175.00,
+        3975.00,
+        4880.00,
+        2790.00,
         3273.00,
-        4603.50,
         2640.00,
+        2410.00,
         2227.50,
         1860.00,
-        390551.83,
+        28884.26,
+    ],
+    "Num Fatture": [
+        19,
+        29,
+        6,
+        6,
+        2,
+        5,
+        6,
+        4,
+        3,
+        1,
+        2,
+        3,
+        1,
+        1,
+        2,
+        3,
+        2,
+        1,
+        10,
     ],
 })
 
 dati_clienti_mensili = {
+    "WITTUR SPA": {
+        "2026": [19638.0, 19653.0, 27121.5, 20090.5, 18483.0, 31936.0, 0.0],
+        "2025": [
+            15561.0,
+            13911.5,
+            18000.0,
+            16500.0,
+            17800.0,
+            18200.0,
+            19500.0,
+        ],
+        "2024": [
+            12000.0,
+            14000.0,
+            17547.0,
+            16000.0,
+            17804.5,
+            16500.0,
+            23948.5,
+        ],
+    },
+    "SIDEL S.P.A.": {
+        "2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 0.0],
+        "2025": [
+            9078.0,
+            13487.31,
+            11200.0,
+            12500.0,
+            14000.0,
+            11800.0,
+            12900.0,
+        ],
+        "2024": [
+            11000.0,
+            12500.0,
+            13000.0,
+            10500.0,
+            11800.0,
+            12200.0,
+            14000.0,
+        ],
+    },
+    "ACMI LABELLING SRL": {
+        "2026": [3284.0, 0.0, 3624.0, 4770.0, 0.0, 21806.0, 0.0],
+        "2025": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    },
     "CALF SPA": {
         "2026": [4698.0, 4435.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         "2025": [6061.0, 5017.0, 6365.5, 6742.5, 5408.5, 6612.0, 5814.5],
@@ -462,16 +522,6 @@ dati_clienti_mensili = {
         "2026": [0.0, 0.0, 0.0, 0.0, 2295.0, 1680.0, 1200.0],
         "2025": [1920.0, 1920.0, 1920.0, 1440.0, 720.0, 1200.0, 2160.0],
         "2024": [0.0, 0.0, 1455.0, 1920.0, 1170.0, 0.0, 2160.0],
-    },
-    "ACMI BEVERAGE SPA": {
-        "2026": [6784.0, 0.0, 10793.0, 0.0, 0.0, 0.0, 0.0],
-        "2025": [11262.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    },
-    "GEA MECHANICAL EQUIPMENT": {
-        "2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0],
-        "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0],
-        "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0],
     },
 }
 
@@ -542,111 +592,7 @@ df_riassunto_2026 = pd.DataFrame({
     ],
 })
 
-dati_dipendenti_mensili = {
-    "D'ALSAZIA": {
-        "Costo": [
-            3693.39,
-            3960.66,
-            3857.07,
-            3922.04,
-            3889.52,
-            4007.63,
-            2555.03,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [150.5, 166.5, 172.5, 168.5, 163.0, 168.0, 105.5, 0, 0, 0, 0, 0],
-    },
-    "BASSISSI": {
-        "Costo": [
-            2169.70,
-            2337.50,
-            2361.92,
-            2332.02,
-            2406.59,
-            2407.38,
-            1520.40,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [143.5, 160.0, 176.0, 168.0, 158.0, 157.0, 96.0, 0, 0, 0, 0, 0],
-    },
-    "CASELLI": {
-        "Costo": [
-            3504.50,
-            3749.44,
-            4035.38,
-            4073.36,
-            3925.75,
-            3846.69,
-            2635.19,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [125.0, 140.0, 151.0, 129.5, 137.5, 141.0, 86.0, 0, 0, 0, 0, 0],
-    },
-    "LANZI": {
-        "Costo": [
-            2949.79,
-            3225.64,
-            3455.40,
-            3518.32,
-            3244.59,
-            3093.37,
-            2944.15,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-        "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0],
-    },
-}
-
-mesi = [
-    "Gen",
-    "Feb",
-    "Mar",
-    "Apr",
-    "Mag",
-    "Giu",
-    "Lug",
-    "Ago",
-    "Set",
-    "Ott",
-    "Nov",
-    "Dic",
-]
-
-# --- SIDEBAR E NAVIGAZIONE ---
-st.sidebar.markdown(
-    "<h2 style='text-align: center; color: #1e3a8a;'>⚙️ Sintec App</h2>",
-    unsafe_allow_html=True,
-)
-sezione = st.sidebar.radio(
-    "Navigazione Principale",
-    ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"],
-)
-
-st.sidebar.markdown("---")
-st.sidebar.link_button(
-    "📓 Apri Google Notebook",
-    "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
-    use_container_width=True,
-)
-
-
-# HELPER PER GRAFICI CON DESIGN CHIARO & PULITO
+# --- HELPER LAYOUT GRAFICI ---
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
@@ -666,29 +612,38 @@ def layout_grafico_chiaro(fig):
     return fig
 
 
+# --- SIDEBAR E NAVIGAZIONE ---
+st.sidebar.markdown(
+    "<h2 style='text-align: center; color: #1e3a8a;'>⚙️ Sintec App</h2>",
+    unsafe_allow_html=True,
+)
+sezione = st.sidebar.radio(
+    "Navigazione Principale",
+    ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"],
+)
+
+st.sidebar.markdown("---")
+st.sidebar.link_button(
+    "📓 Apri Google Notebook",
+    "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
+    use_container_width=True,
+)
+
 if sezione == "📈 Dashboard Grafica":
     st.sidebar.subheader("🎛️ Filtri e Caricamento Dati")
     anno_selezionato = st.sidebar.selectbox(
         "Seleziona Anno Analisi", [2026, 2024]
     )
 
-    file_upload = st.sidebar.file_uploader(
-        "📁 Carica File Excel (.xlsx)", type=["xlsx"]
-    )
-    if file_upload:
-        st.sidebar.success("File caricato correttamente!")
-
     label_anno = (
         "2026 (Parziale Gen–Lug)"
         if anno_selezionato == 2026
         else str(anno_selezionato)
     )
-
     st.markdown(
         f"## 📊 Risultati **{label_anno}** vs **2025** (Anno Riferimento)"
     )
 
-    # --- CALCOLI METRICHE E PREVISIONALI ---
     tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
@@ -700,25 +655,21 @@ if sezione == "📈 Dashboard Grafica":
 
     tot_f_2025_tot = df_fat["Fatturato 2025"].sum()
     tot_f_2025_parz = df_fat["Fatturato 2025"].iloc[:7].sum()
-
     tot_c_2025_tot = df_costi["Costi 2025"].sum()
     tot_c_2025_parz = df_costi["Costi 2025"].iloc[:7].sum()
 
     mol_2025_tot = tot_f_2025_tot - tot_c_2025_tot
     mol_2025_parz = tot_f_2025_parz - tot_c_2025_parz
 
-    # --- CARD KPI CUSTOM RESPONSIVE CON DESIGN CHIARO ---
+    # --- KPI CARDS ---
     col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
-
     with col_kpi1:
         st.markdown(
             f"""
         <div class="kpi-card">
             <div class="kpi-title">Fatturato Totale {label_anno}</div>
             <div class="kpi-value">€ {tot_f_sel:,.2f}</div>
-            <div style="margin-top:8px;">
-                <span class="badge-positive">🔮 Previsionale 12M: € {prev_f_sel:,.2f}</span>
-            </div>
+            <div style="margin-top:8px;"><span class="badge-positive">🔮 Previsionale 12M: € {prev_f_sel:,.2f}</span></div>
             <div class="kpi-subtitle">📌 2025 Gen-Lug: € {tot_f_2025_parz:,.2f} | Tot 2025: € {tot_f_2025_tot:,.2f}</div>
         </div>
         """,
@@ -731,9 +682,7 @@ if sezione == "📈 Dashboard Grafica":
         <div class="kpi-card">
             <div class="kpi-title">Costi Totali Personale</div>
             <div class="kpi-value" style="color: #e11d48;">€ {tot_c_sel:,.2f}</div>
-            <div style="margin-top:8px;">
-                <span class="badge-info">🔮 Previsionale 12M: € {prev_c_sel:,.2f}</span>
-            </div>
+            <div style="margin-top:8px;"><span class="badge-info">🔮 Previsionale 12M: € {prev_c_sel:,.2f}</span></div>
             <div class="kpi-subtitle">📌 2025 Gen-Lug: € {tot_c_2025_parz:,.2f} | Tot 2025: € {tot_c_2025_tot:,.2f}</div>
         </div>
         """,
@@ -746,9 +695,7 @@ if sezione == "📈 Dashboard Grafica":
         <div class="kpi-card">
             <div class="kpi-title">Margine Operativo</div>
             <div class="kpi-value" style="color: #16a34a;">€ {mol_sel:,.2f}</div>
-            <div style="margin-top:8px;">
-                <span class="badge-positive">🔮 Previsionale 12M: € {prev_mol_sel:,.2f}</span>
-            </div>
+            <div style="margin-top:8px;"><span class="badge-positive">🔮 Previsionale 12M: € {prev_mol_sel:,.2f}</span></div>
             <div class="kpi-subtitle">📌 2025 Gen-Lug: € {mol_2025_parz:,.2f} | Tot 2025: € {mol_2025_tot:,.2f}</div>
         </div>
         """,
@@ -757,7 +704,7 @@ if sezione == "📈 Dashboard Grafica":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- TABBED INTERFACE ---
+    # --- TAB ---
     t1, t2, t3, t4, t5, t6, t7 = st.tabs([
         "📊 Fatturato",
         "👥 Costi Personale",
@@ -765,7 +712,7 @@ if sezione == "📈 Dashboard Grafica":
         "⚙️ Ore Indirette",
         "💶 Media Oraria",
         "📋 Dipendenti",
-        "🍕 Analisi Clienti",
+        "🍕 Analisi Clienti (Wittur & altri)",
     ])
 
     with t1:
@@ -775,11 +722,9 @@ if sezione == "📈 Dashboard Grafica":
             y=[f"Fatturato {anno_selezionato}", "Fatturato 2025"],
             barmode="group",
             title=f"Confronto Fatturato Mensile: {label_anno} vs 2025",
-            labels={"value": "Euro (€)", "variable": "Anno"},
             color_discrete_sequence=["#2563eb", "#93c5fd"],
             text_auto=",.0f",
         )
-        fig_f.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_f), use_container_width=True
         )
@@ -791,28 +736,14 @@ if sezione == "📈 Dashboard Grafica":
             y=[f"Costi {anno_selezionato}", "Costi 2025"],
             barmode="group",
             title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
-            labels={"value": "Euro (€)", "variable": "Anno"},
             color_discrete_sequence=["#e11d48", "#fda4af"],
             text_auto=",.0f",
         )
-        fig_c.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_c), use_container_width=True
         )
 
     with t3:
-        tot_dir_26 = df_ore_dirette["Ore Dirette 2026"].sum()
-        tot_dir_25_parz = df_ore_dirette["Ore Dirette 2025"].iloc[:7].sum()
-        tot_dir_25_tot = df_ore_dirette["Ore Dirette 2025"].sum()
-        prev_dir_26 = (
-            (tot_dir_26 / mesi_consolidati) * 12
-            if anno_selezionato == 2026
-            else tot_dir_26
-        )
-
-        st.caption(
-            f"🔮 **Previsione 12M 2026:** {prev_dir_26:,.1f} h | 📌 **Gen-Lug 2025:** {tot_dir_25_parz:,.1f} h | **Consuntivo 2025:** {tot_dir_25_tot:,.1f} h"
-        )
         fig_dir = px.bar(
             df_ore_dirette,
             x="Mese",
@@ -822,24 +753,11 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#16a34a", "#86efac"],
             text_auto=",.1f",
         )
-        fig_dir.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_dir), use_container_width=True
         )
 
     with t4:
-        tot_ind_26 = df_ore_indirette["Ore Indirette 2026"].sum()
-        tot_ind_25_parz = df_ore_indirette["Ore Indirette 2025"].iloc[:7].sum()
-        tot_ind_25_tot = df_ore_indirette["Ore Indirette 2025"].sum()
-        prev_ind_26 = (
-            (tot_ind_26 / mesi_consolidati) * 12
-            if anno_selezionato == 2026
-            else tot_ind_26
-        )
-
-        st.caption(
-            f"🔮 **Previsione 12M 2026:** {prev_ind_26:,.1f} h | 📌 **Gen-Lug 2025:** {tot_ind_25_parz:,.1f} h | **Consuntivo 2025:** {tot_ind_25_tot:,.1f} h"
-        )
         fig_ind = px.bar(
             df_ore_indirette,
             x="Mese",
@@ -849,15 +767,11 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#d97706", "#fde047"],
             text_auto=",.1f",
         )
-        fig_ind.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_ind), use_container_width=True
         )
 
     with t5:
-        st.caption(
-            "📌 **Gen–Lug 2026:** € 31.42/h | **Gen–Lug 2025:** € 29.23/h | **Consuntivo 2025 Totale:** € 30.12/h"
-        )
         fig_media = px.bar(
             df_media_oraria,
             x="Mese",
@@ -871,83 +785,37 @@ if sezione == "📈 Dashboard Grafica":
             color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
             text_auto=",.2f",
         )
-        fig_media.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_media), use_container_width=True
         )
 
     with t6:
         st.subheader("📊 Totale Parziale 2026 - Costi e Ore Personale")
-
-        def style_totale(row):
-            if "TOTALE SINTEC" in str(row["COGNOME"]):
-                return [
-                    "background-color: #dbeafe; font-weight: bold; color: #1e40af"
-                ] * len(row)
-            return [""] * len(row)
-
         st.dataframe(
-            df_riassunto_2026.style.apply(style_totale, axis=1).format({
+            df_riassunto_2026.style.format({
                 "COSTO TOT": "€ {:,.2f}",
                 "ORE TOT": "{:,.1f}",
                 "COSTO ORARIO": "€ {:,.2f}",
             }),
             use_container_width=True,
-            height=450,
-        )
-
-        st.markdown("---")
-        st.subheader("🔎 Dettaglio Mensile Dipendente")
-        dip_scelto = st.selectbox(
-            "Seleziona Dipendente:", list(dati_dipendenti_mensili.keys())
-        )
-
-        df_dip = pd.DataFrame({
-            "Mese": mesi,
-            "Costo Totale (€)": dati_dipendenti_mensili[dip_scelto]["Costo"],
-            "Ore Totali": dati_dipendenti_mensili[dip_scelto]["Ore"],
-        })
-        df_dip["Costo Orario (€/h)"] = (
-            df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
-        ).fillna(0).round(2)
-
-        st.dataframe(
-            df_dip.style.format({
-                "Costo Totale (€)": "€ {:,.2f}",
-                "Ore Totali": "{:,.1f} h",
-                "Costo Orario (€/h)": "€ {:,.2f}",
-            }),
-            use_container_width=True,
-        )
-
-        fig_dip = px.bar(
-            df_dip[df_dip["Ore Totali"] > 0],
-            x="Mese",
-            y="Costo Totale (€)",
-            text_auto=",.0f",
-            color_discrete_sequence=["#2563eb"],
-            title=f"Andamento Mensile Costi - {dip_scelto}",
-        )
-        fig_dip.update_traces(textposition="outside")
-        st.plotly_chart(
-            layout_grafico_chiaro(fig_dip), use_container_width=True
+            height=400,
         )
 
     with t7:
-        st.subheader(
-            "🍕 Ripartizione e Dettaglio Completo Fatturato per Cliente"
+        st.subheader("🍕 Analisi Dettagliata Clienti e Fatture Emesse (2026)")
+        st.info(
+            "💡 **Wittur SPA** è il primo cliente aziendale per volume d'affari nel 2026 (€ 136.922,00 su 19 fatture nel semestre)."
         )
 
         col_p1, col_p2 = st.columns([1.1, 1])
-
         with col_p1:
             fig_pie = px.pie(
                 df_clienti_2026,
-                values="Fatturato 2026 (€)",
+                values="Fatturato 2026 Gen-Giu (€)",
                 names="Cliente",
                 hole=0.4,
                 color_discrete_sequence=px.colors.qualitative.Set3,
-                title="Quota % sul Totale Fatturato (2026 Gen-Lug)",
+                title="Ripartizione Fatturato per Cliente (Gen-Giu 2026)",
             )
             fig_pie.update_traces(
                 textposition="inside", textinfo="percent+label"
@@ -957,18 +825,18 @@ if sezione == "📈 Dashboard Grafica":
             )
 
         with col_p2:
-            st.markdown("#### 🏆 Dettaglio Fatture Emesse per Cliente (2026)")
+            st.markdown("#### 🏆 Classifica Completa Clienti (Gen-Giu 2026)")
             df_cli_s = df_clienti_2026.sort_values(
-                by="Fatturato 2026 (€)", ascending=False
+                by="Fatturato 2026 Gen-Giu (€)", ascending=False
             ).reset_index(drop=True)
-            tot_cli = df_cli_s["Fatturato 2026 (€)"].sum()
+            tot_cli = df_cli_s["Fatturato 2026 Gen-Giu (€)"].sum()
             df_cli_s["% Quota"] = (
-                df_cli_s["Fatturato 2026 (€)"] / tot_cli * 100
+                df_cli_s["Fatturato 2026 Gen-Giu (€)"] / tot_cli * 100
             ).round(2)
 
             st.dataframe(
                 df_cli_s.style.format({
-                    "Fatturato 2026 (€)": "€ {:,.2f}",
+                    "Fatturato 2026 Gen-Giu (€)": "€ {:,.2f}",
                     "% Quota": "{:.2f} %",
                 }),
                 use_container_width=True,
@@ -976,10 +844,9 @@ if sezione == "📈 Dashboard Grafica":
             )
 
         st.markdown("---")
-        st.subheader("🔎 Analisi e Confronto Mensile del Singolo Cliente")
+        st.subheader("🔎 Storico Mensile Cliente Singolo")
         cli_scelto = st.selectbox(
-            "Seleziona Cliente da Analizzare:",
-            list(dati_clienti_mensili.keys()),
+            "Seleziona Cliente:", list(dati_clienti_mensili.keys())
         )
 
         df_cli_m = pd.DataFrame({
@@ -1003,55 +870,29 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y=["2026 (€)", "2025 (€)", "2024 (€)"],
             barmode="group",
-            title=f"Storico Mensile Fatturato: {cli_scelto}",
+            title=f"Andamento Mensile Fatturato: {cli_scelto}",
             color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
             text_auto=",.0f",
         )
-        fig_cli_m.update_traces(textposition="outside")
         st.plotly_chart(
             layout_grafico_chiaro(fig_cli_m), use_container_width=True
         )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
-    st.subheader("🤖 Assistente Virtuale Smart")
-    st.write(
-        "Poni qualsiasi domanda in formato testo o vocale sui dati gestionali Sintec."
+    st.subheader("🤖 Assistente IA Gestionale")
+    domanda = st.text_input(
+        "Fai una domanda sui dati di fatturato, Wittur o costi:"
     )
-
-    col_a1, col_a2 = st.columns([3, 1])
-    with col_a1:
-        domanda = st.text_input(
-            "Chiedi all'Assistente:",
-            placeholder="Es. Qual è il cliente con maggior fatturato nel 2026?",
+    if domanda and "OPENAI_API_KEY" in st.secrets:
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Sei l'assistente per il controllo di gestione di Sintec S.r.l.",
+                },
+                {"role": "user", "content": domanda},
+            ],
         )
-    with col_a2:
-        st.write("🎙️ Input Vocale:")
-        audio = mic_recorder(
-            start_prompt="Inizia", stop_prompt="Invia", key="rec", format="wav"
-        )
-
-    if domanda:
-        st.markdown("---")
-        st.markdown("### 💡 Risposta:")
-
-        if "OPENAI_API_KEY" in st.secrets:
-            try:
-                prompt_sistema = """
-                Sei l'assistente di Controllo di Gestione di Sintec S.r.l.
-                Dati aziendali essenziali:
-                - Fatturato 2026 Gen-Lug: € 490.149,83 | Previsionale 12M: € 840.256,85 | Consuntivo 2025: € 801.134,71
-                - Costi Personale 2026 Gen-Lug: € 268.016,84 | Previsionale 12M: € 459.457,44 | Consuntivo 2025: € 453.488,81
-                - Margine 2026 Gen-Lug: € 222.132,99 | Previsionale 12M: € 380.799,41 | Consuntivo 2025: € 347.645,90
-                - Media Oraria 2026 Gen-Lug: € 31,42/h | Consuntivo 2025: € 30,12/h
-                """
-                client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": prompt_sistema},
-                        {"role": "user", "content": domanda},
-                    ],
-                )
-                st.success(response.choices[0].message.content)
-            except Exception as e:
-                st.error(f"Errore API OpenAI: {e}")
+        st.success(res.choices[0].message.content)
