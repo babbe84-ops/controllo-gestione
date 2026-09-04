@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="Sintec - Dashboard Controllo di Gestione", layout="wide"
 )
 
-# --- SCHERMATA DI LOGIN (Salvabile su iPhone / Chrome) ---
+# --- SCHERMATA DI LOGIN ---
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -22,7 +22,6 @@ if not st.session_state["authenticated"]:
         submit_button = st.form_submit_button("Accedi")
 
     if submit_button:
-        # Personalizza qui le tue credenziali
         if username == "sintec" and password == "Sintec2026!":
             st.session_state["authenticated"] = True
             st.success("Accesso effettuato con successo!")
@@ -32,7 +31,6 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # --- CARICAMENTO DATI ---
-# Dati dal progetto Sintec
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -159,40 +157,87 @@ sezione = st.sidebar.radio(
     "Menu Principale", ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"]
 )
 
-if sezione == "📈 Dashboard Grafica":
-    anno = st.sidebar.selectbox("Anno di Riferimento KPI", [2026, 2025, 2024])
+# Pulsante per andare direttamente al Notebook Google
+st.sidebar.markdown("---")
+st.sidebar.link_button(
+    "📓 Apri Notebook Google",
+    "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
+)
 
-    c1, c2, c3 = st.columns(3)
-    tot_f = df_fat[f"Fatturato_{anno}"].sum()
-    tot_c = df_costi[f"Costi_{anno}"].sum()
-    c1.metric("Totale Fatturato", f"€ {tot_f:,.2f}")
-    c2.metric("Totale Costi Personale", f"€ {tot_c:,.2f}")
-    c3.metric(
-        "Margine Operativo",
-        f"€ {(tot_f - tot_c):,.2f}",
-        delta=f"{(((tot_f - tot_c) / tot_f) * 100 if tot_f > 0 else 0):.1f}% MOL",
+if sezione == "📈 Dashboard Grafica":
+    st.sidebar.subheader("Filtri Visualizzazione")
+    anno_selezionato = st.sidebar.selectbox(
+        "Seleziona Anno da Analizzare", [2026, 2024]
+    )
+
+    st.markdown(
+        f"### 🎯 Risultati {anno_selezionato} in Confronto al **2025** (Anno di Riferimento)"
+    )
+
+    # Calcolo KPI Anno Selezionato vs 2025
+    tot_f_sel = df_fat[f"Fatturato_{anno_selezionato}"].sum()
+    tot_f_2025 = df_fat["Fatturato_2025"].sum()
+    diff_f = tot_f_sel - tot_f_2025
+
+    tot_c_sel = df_costi[f"Costi_{anno_selezionato}"].sum()
+    tot_c_2025 = df_costi["Costi_2025"].sum()
+    diff_c = tot_c_sel - tot_c_2025
+
+    mol_sel = tot_f_sel - tot_c_sel
+    mol_2025 = tot_f_2025 - tot_c_2025
+    diff_mol = mol_sel - mol_2025
+
+    # Visualizzazione KPI
+    col1, col2, col3 = st.columns(3)
+    col1.metric(
+        f"Fatturato Totale {anno_selezionato}",
+        f"€ {tot_f_sel:,.2f}",
+        delta=f"€ {diff_f:,.2f} vs 2025",
+    )
+    col2.metric(
+        f"Costi Personale {anno_selezionato}",
+        f"€ {tot_c_sel:,.2f}",
+        delta=f"€ {diff_c:,.2f} vs 2025",
+        delta_color="inverse",
+    )
+    col3.metric(
+        f"Margine Operativo {anno_selezionato}",
+        f"€ {mol_sel:,.2f}",
+        delta=f"€ {diff_mol:,.2f} vs 2025",
     )
 
     st.markdown("---")
-    t1, t2 = st.tabs(["📊 Fatturato Mensile", "👥 Costi del Personale"])
+    t1, t2 = st.tabs(["📊 Confronto Fatturato", "👥 Confronto Costi Personale"])
 
     with t1:
+        # Grafico a barre con ETICHETTE DATI VISIBILI
         fig_f = px.bar(
             df_fat,
             x="Mese",
-            y=[f"Fatturato_{anno}"],
-            title=f"Andamento Fatturato {anno}",
+            y=[f"Fatturato_{anno_selezionato}", "Fatturato_2025"],
+            barmode="group",
+            title=f"Confronto Fatturato Mensile: {anno_selezionato} vs 2025",
+            labels={"value": "Euro (€)", "variable": "Anno"},
+            text_auto=",.0f",  # Mostra il valore formattato sopra la barra
         )
+        fig_f.update_traces(textposition="outside")
         st.plotly_chart(fig_f, use_container_width=True)
 
     with t2:
+        # Grafico a linee con ETICHETTE DATI VISIBILI
         fig_c = px.line(
             df_costi,
             x="Mese",
-            y=[f"Costi_{anno}"],
+            y=[f"Costi_{anno_selezionato}", "Costi_2025"],
             markers=True,
-            title=f"Andamento Costi Personale {anno}",
+            title=f"Confronto Costi Personale Mensili: {anno_selezionato} vs 2025",
+            labels={"value": "Euro (€)", "variable": "Anno"},
+            text=[
+                f"€{val:,.0f}" if val > 0 else ""
+                for val in df_costi[f"Costi_{anno_selezionato}"]
+            ],
         )
+        fig_c.update_traces(textposition="top center")
         st.plotly_chart(fig_c, use_container_width=True)
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
@@ -218,4 +263,3 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
 
     if domanda:
         st.info(f"Elaborazione richiesta per: **{domanda}**")
-        # Qui l'assistente consulta i dati del Notebook
