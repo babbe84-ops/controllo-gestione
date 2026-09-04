@@ -2,12 +2,114 @@ import io
 import os
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from openai import OpenAI
 from streamlit_mic_recorder import mic_recorder
 
+# --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(
-    page_title="Sintec - Dashboard Controllo di Gestione", layout="wide"
+    page_title="Sintec S.r.l. - Controllo di Gestione",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# --- INIEZIONE CSS PER DESIGN RESPONSIVE & MODERNO ---
+st.markdown(
+    """
+<style>
+    /* Gradient Background & Fonts */
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f8fafc;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    /* Card Glassmorphism per KPI e Sezioni */
+    .kpi-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+    }
+    
+    .kpi-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        margin-bottom: 6px;
+    }
+    .kpi-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #f8fafc;
+        line-height: 1.2;
+    }
+    .kpi-subtitle {
+        font-size: 0.78rem;
+        color: #cbd5e1;
+        margin-top: 8px;
+    }
+    .badge-positive {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    .badge-info {
+        background: rgba(56, 189, 248, 0.2);
+        color: #38bdf8;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    /* Style dei Tab e Pulsanti */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(15, 23, 42, 0.6);
+        padding: 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 45px;
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 600;
+        border: none;
+        padding: 0 16px;
+        transition: all 0.2s ease;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Ottimizzazione Mobile Responsive */
+    @media (max-width: 768px) {
+        .kpi-value { font-size: 1.4rem; }
+        .stTabs [data-baseweb="tab"] { font-size: 0.8rem; padding: 0 8px; }
+    }
+</style>
+""",
+    unsafe_allow_html=True,
 )
 
 # --- SCHERMATA DI LOGIN ---
@@ -15,22 +117,29 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 if not st.session_state["authenticated"]:
-    st.title("🔒 Accesso Riservato - Sintec S.r.l.")
-    with st.form("login_form"):
-        username = st.text_input("Username", key="username")
-        password = st.text_input("Password", type="password", key="password")
-        submit_button = st.form_submit_button("Accedi")
+    st.markdown(
+        "<div style='text-align: center; margin-top: 50px;'><h1>🔒 Accesso Riservato</h1><p style='color: #94a3b8;'>Sintec S.r.l. - Controllo di Gestione</p></div>",
+        unsafe_allow_html=True,
+    )
+    col_l1, col_l2, col_l3 = st.columns([1, 1.2, 1])
+    with col_l2:
+        with st.form("login_form"):
+            username = st.text_input("Username", key="username")
+            password = st.text_input("Password", type="password", key="password")
+            submit_button = st.form_submit_button(
+                "🚀 Accedi al Dashboard", use_container_width=True
+            )
 
-    if submit_button:
-        if username == "sintec" and password == "Sintec2026!":
-            st.session_state["authenticated"] = True
-            st.success("Accesso effettuato con successo!")
-            st.rerun()
-        else:
-            st.error("Credenziali non valide")
+        if submit_button:
+            if username == "sintec" and password == "Sintec2026!":
+                st.session_state["authenticated"] = True
+                st.success("Accesso effettuato con successo!")
+                st.rerun()
+            else:
+                st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI FATTURATO E COSTI MESI ANNO ---
+# --- CARICAMENTO DATI FONDAMENTALI ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -149,7 +258,6 @@ df_costi = pd.DataFrame({
     ],
 })
 
-# --- DATI ORE DIRETTE E ORE INDIRETTE ---
 df_ore_dirette = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -240,7 +348,6 @@ df_ore_indirette = pd.DataFrame({
     ],
 })
 
-# --- DATI MEDIA ORARIA (FATTURATO / ORE TOTALI) ---
 df_media_oraria = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -300,7 +407,6 @@ df_media_oraria = pd.DataFrame({
     ],
 })
 
-# --- DATI CLIENTO / FATTURATO ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
         "ACMI BEVERAGE SPA",
@@ -336,7 +442,6 @@ df_clienti_2026 = pd.DataFrame({
     ],
 })
 
-# Dettagli mensili comparativi per cliente (Gen-Lug)
 dati_clienti_mensili = {
     "CALF SPA": {
         "2026": [4698.0, 4435.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -365,7 +470,6 @@ dati_clienti_mensili = {
     },
 }
 
-# --- DATI RIASSUNTIVI ANNO 2026 ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": [
         "D'ALSAZIA",
@@ -587,31 +691,54 @@ mesi = [
     "Dic",
 ]
 
-# --- INTERFACCIA STREAMLIT ---
-st.title("📊 Sintec S.r.l. - Controllo di Gestione")
-
-st.sidebar.header("Navigazione")
+# --- SIDEBAR E NAVIGAZIONE ---
+st.sidebar.markdown(
+    "<h2 style='text-align: center; color: #38bdf8;'>⚙️ Sintec App</h2>",
+    unsafe_allow_html=True,
+)
 sezione = st.sidebar.radio(
-    "Menu Principale", ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"]
+    "Navigazione Principale",
+    ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"],
 )
 
 st.sidebar.markdown("---")
 st.sidebar.link_button(
-    "📓 Apri Notebook Google",
+    "📓 Apri Google Notebook",
     "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
+    use_container_width=True,
 )
 
+# HELPER PER GRAFICI CON DESIGN DARK UNIFORME
+def layout_grafico_scuro(fig):
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif", color="#f8fafc"),
+        margin=dict(l=20, r=20, t=50, b=30),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor="rgba(0,0,0,0)",
+        ),
+    )
+    return fig
+
+
 if sezione == "📈 Dashboard Grafica":
-    st.sidebar.subheader("Filtri Visualizzazione")
+    st.sidebar.subheader("🎛️ Filtri e Caricamento Dati")
     anno_selezionato = st.sidebar.selectbox(
-        "Seleziona Anno da Analizzare", [2026, 2024]
+        "Seleziona Anno Analisi", [2026, 2024]
     )
 
     file_upload = st.sidebar.file_uploader(
-        "📁 Carica 'SCHEDA CONTROLLO ORE-FATTURATO' (.xlsx)", type=["xlsx"]
+        "📁 Carica File Excel (.xlsx)", type=["xlsx"]
     )
     if file_upload:
-        st.sidebar.success("File caricato! Aggiornamento dati in corso...")
+        st.sidebar.success("File caricato correttamente!")
 
     label_anno = (
         "2026 (Parziale Gen–Lug)"
@@ -620,10 +747,10 @@ if sezione == "📈 Dashboard Grafica":
     )
 
     st.markdown(
-        f"### 🎯 Risultati **{label_anno}** in Confronto al **2025** (Anno di Riferimento)"
+        f"## 📊 Risultati **{label_anno}** vs **2025** (Anno Riferimento)"
     )
 
-    # --- CALCOLI REALI E PREVISIONALI MATEMATICI ---
+    # --- CALCOLI METRICHE E PREVISIONALI ---
     tot_f_sel = df_fat[f"Fatturato {anno_selezionato}"].sum()
     tot_c_sel = df_costi[f"Costi {anno_selezionato}"].sum()
     mol_sel = tot_f_sel - tot_c_sel
@@ -642,49 +769,65 @@ if sezione == "📈 Dashboard Grafica":
     mol_2025_tot = tot_f_2025_tot - tot_c_2025_tot
     mol_2025_parz = tot_f_2025_parz - tot_c_2025_parz
 
-    diff_f = tot_f_sel - tot_f_2025_tot
-    diff_c = tot_c_sel - tot_c_2025_tot
-    diff_mol = mol_sel - mol_2025_tot
+    # --- CARD KPI CUSTOM RESPONSIVE ---
+    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
 
-    col1, col2, col3 = st.columns(3)
+    with col_kpi1:
+        st.markdown(
+            f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Fatturato Totale {label_anno}</div>
+            <div class="kpi-value">€ {tot_f_sel:,.2f}</div>
+            <div style="margin-top:8px;">
+                <span class="badge-positive">🔮 Previsionale 12M: € {prev_f_sel:,.2f}</span>
+            </div>
+            <div class="kpi-subtitle">📌 2025 Gen-Lug: € {tot_f_2025_parz:,.2f} | Tot 2025: € {tot_f_2025_tot:,.2f}</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
-    col1.metric(
-        f"Fatturato Totale {label_anno}",
-        f"€ {tot_f_sel:,.2f}",
-        delta=f"€ {diff_f:,.2f} vs Tot 2025",
-    )
-    col1.caption(
-        f"🔮 **Previsionale Fine Anno:** € {prev_f_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {tot_f_2025_parz:,.2f} | **2025 Consuntivo:** € {tot_f_2025_tot:,.2f}"
-    )
+    with col_kpi2:
+        st.markdown(
+            f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Costi Totali Personale</div>
+            <div class="kpi-value" style="color: #f43f5e;">€ {tot_c_sel:,.2f}</div>
+            <div style="margin-top:8px;">
+                <span class="badge-info">🔮 Previsionale 12M: € {prev_c_sel:,.2f}</span>
+            </div>
+            <div class="kpi-subtitle">📌 2025 Gen-Lug: € {tot_c_2025_parz:,.2f} | Tot 2025: € {tot_c_2025_tot:,.2f}</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
-    col2.metric(
-        f"Costi Personale {label_anno}",
-        f"€ {tot_c_sel:,.2f}",
-        delta=f"€ {diff_c:,.2f} vs Tot 2025",
-        delta_color="inverse",
-    )
-    col2.caption(
-        f"🔮 **Previsionale Fine Anno:** € {prev_c_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {tot_c_2025_parz:,.2f} | **2025 Consuntivo:** € {tot_c_2025_tot:,.2f}"
-    )
+    with col_kpi3:
+        st.markdown(
+            f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Margine Operativo</div>
+            <div class="kpi-value" style="color: #10b981;">€ {mol_sel:,.2f}</div>
+            <div style="margin-top:8px;">
+                <span class="badge-positive">🔮 Previsionale 12M: € {prev_mol_sel:,.2f}</span>
+            </div>
+            <div class="kpi-subtitle">📌 2025 Gen-Lug: € {mol_2025_parz:,.2f} | Tot 2025: € {mol_2025_tot:,.2f}</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
-    col3.metric(
-        f"Margine Operativo {label_anno}",
-        f"€ {mol_sel:,.2f}",
-        delta=f"€ {diff_mol:,.2f} vs Tot 2025",
-    )
-    col3.caption(
-        f"🔮 **Previsionale Fine Anno:** € {prev_mol_sel:,.2f}  \n📌 **2025 Gen–Lug:** € {mol_2025_parz:,.2f} | **2025 Consuntivo:** € {mol_2025_tot:,.2f}"
-    )
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("---")
+    # --- TABBED INTERFACE CON ICONE ---
     t1, t2, t3, t4, t5, t6, t7 = st.tabs([
-        "📊 Confronto Fatturato",
-        "👥 Costi Totali Personale",
+        "📊 Fatturato",
+        "👥 Costi Personale",
         "⏱️ Ore Dirette",
         "⚙️ Ore Indirette",
-        "💶 Media Oraria (Fatturato/Ore)",
-        "📋 Dettaglio Dipendenti",
-        "🍕 Analisi Fatturato per Cliente",
+        "💶 Media Oraria",
+        "📋 Dipendenti",
+        "🍕 Analisi Clienti",
     ])
 
     with t1:
@@ -695,13 +838,15 @@ if sezione == "📈 Dashboard Grafica":
             barmode="group",
             title=f"Confronto Fatturato Mensile: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
+            color_discrete_sequence=["#38bdf8", "#818cf8"],
             text_auto=",.0f",
         )
         fig_f.update_traces(textposition="outside")
-        st.plotly_chart(fig_f, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_f), use_container_width=True
+        )
 
     with t2:
-        # GRAFICO A COLONNE / BARRE RAGGRUPPATE PER I COSTI DEL PERSONALE
         fig_c = px.bar(
             df_costi,
             x="Mese",
@@ -709,99 +854,72 @@ if sezione == "📈 Dashboard Grafica":
             barmode="group",
             title=f"Confronto Costi Personale Mensili: {label_anno} vs 2025",
             labels={"value": "Euro (€)", "variable": "Anno"},
+            color_discrete_sequence=["#f43f5e", "#fb7185"],
             text_auto=",.0f",
         )
         fig_c.update_traces(textposition="outside")
-        st.plotly_chart(fig_c, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_c), use_container_width=True
+        )
 
     with t3:
         tot_dir_26 = df_ore_dirette["Ore Dirette 2026"].sum()
         tot_dir_25_parz = df_ore_dirette["Ore Dirette 2025"].iloc[:7].sum()
         tot_dir_25_tot = df_ore_dirette["Ore Dirette 2025"].sum()
-        diff_dir = tot_dir_26 - tot_dir_25_parz
-
         prev_dir_26 = (
             (tot_dir_26 / mesi_consolidati) * 12
             if anno_selezionato == 2026
             else tot_dir_26
         )
 
-        st.subheader("⏱️ Andamento Ore Dirette (Lavoro Operativo)")
-        c_dir1, c_dir2 = st.columns(2)
-        c_dir1.metric(
-            "Ore Dirette 2026 (Gen–Lug)",
-            f"{tot_dir_26:,.1f} h",
-            delta=f"{diff_dir:,.1f} h vs 2025 Gen-Lug",
+        st.caption(
+            f"🔮 **Previsione 12M 2026:** {prev_dir_26:,.1f} h | 📌 **Gen-Lug 2025:** {tot_dir_25_parz:,.1f} h | **Consuntivo 2025:** {tot_dir_25_tot:,.1f} h"
         )
-        c_dir2.caption(
-            f"🔮 **Previsionale Fine Anno 2026:** {prev_dir_26:,.1f} h  \n📌 **Ore Dirette 2025 Parziale (Gen–Lug):** {tot_dir_25_parz:,.1f} h  \n📌 **Consuntivo 2025 Totale:** {tot_dir_25_tot:,.1f} h"
-        )
-
         fig_dir = px.bar(
             df_ore_dirette,
             x="Mese",
             y=["Ore Dirette 2026", "Ore Dirette 2025"],
             barmode="group",
-            title=f"Confronto Ore Dirette Mensili: {label_anno} vs 2025",
-            labels={"value": "Ore (h)", "variable": "Anno"},
+            title=f"Confronto Ore Dirette: {label_anno} vs 2025",
+            color_discrete_sequence=["#34d399", "#059669"],
             text_auto=",.1f",
         )
         fig_dir.update_traces(textposition="outside")
-        st.plotly_chart(fig_dir, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_dir), use_container_width=True
+        )
 
     with t4:
         tot_ind_26 = df_ore_indirette["Ore Indirette 2026"].sum()
         tot_ind_25_parz = df_ore_indirette["Ore Indirette 2025"].iloc[:7].sum()
         tot_ind_25_tot = df_ore_indirette["Ore Indirette 2025"].sum()
-        diff_ind = tot_ind_26 - tot_ind_25_parz
-
         prev_ind_26 = (
             (tot_ind_26 / mesi_consolidati) * 12
             if anno_selezionato == 2026
             else tot_ind_26
         )
 
-        st.subheader("⚙️ Andamento Ore Indirette (Gestione / Struttura)")
-        c_ind1, c_ind2 = st.columns(2)
-        c_ind1.metric(
-            "Ore Indirette 2026 (Gen–Lug)",
-            f"{tot_ind_26:,.1f} h",
-            delta=f"{diff_ind:,.1f} h vs 2025 Gen-Lug",
-            delta_color="inverse",
+        st.caption(
+            f"🔮 **Previsione 12M 2026:** {prev_ind_26:,.1f} h | 📌 **Gen-Lug 2025:** {tot_ind_25_parz:,.1f} h | **Consuntivo 2025:** {tot_ind_25_tot:,.1f} h"
         )
-        c_ind2.caption(
-            f"🔮 **Previsionale Fine Anno 2026:** {prev_ind_26:,.1f} h  \n📌 **Ore Indirette 2025 Parziale (Gen–Lug):** {tot_ind_25_parz:,.1f} h  \n📌 **Consuntivo 2025 Totale:** {tot_ind_25_tot:,.1f} h"
-        )
-
         fig_ind = px.bar(
             df_ore_indirette,
             x="Mese",
             y=["Ore Indirette 2026", "Ore Indirette 2025"],
             barmode="group",
-            title=f"Confronto Ore Indirette Mensili: {label_anno} vs 2025",
-            labels={"value": "Ore (h)", "variable": "Anno"},
+            title=f"Confronto Ore Indirette: {label_anno} vs 2025",
+            color_discrete_sequence=["#fbbf24", "#d97706"],
             text_auto=",.1f",
         )
         fig_ind.update_traces(textposition="outside")
-        st.plotly_chart(fig_ind, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_ind), use_container_width=True
+        )
 
     with t5:
-        st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
-
-        media_2026_gen_lug = 31.42
-        media_2025_gen_lug = 29.23
-        diff_media = media_2026_gen_lug - media_2025_gen_lug
-
-        m1, m2 = st.columns(2)
-        m1.metric(
-            "Media Oraria 2026 (Gen–Lug)",
-            f"€ {media_2026_gen_lug:,.2f} / h",
-            delta=f"€ {diff_media:,.2f} / h vs 2025 Gen-Lug",
+        st.caption(
+            "📌 **Gen–Lug 2026:** € 31.42/h | **Gen–Lug 2025:** € 29.23/h | **Consuntivo 2025 Totale:** € 30.12/h"
         )
-        m2.caption(
-            f"📌 **Media Oraria 2025 Parziale (Gen–Lug):** € {media_2025_gen_lug:,.2f} / h  \n📌 **Consuntivo 2025 Totale:** € 30.12 / h  \n📌 **Consuntivo 2024 Totale:** € 28.83 / h"
-        )
-
         fig_media = px.bar(
             df_media_oraria,
             x="Mese",
@@ -811,58 +929,50 @@ if sezione == "📈 Dashboard Grafica":
                 "Media Oraria 2024",
             ],
             barmode="group",
-            title=f"Confronto Media Oraria (€/h): {label_anno} vs 2025 vs 2024",
-            labels={"value": "Euro per Ora (€/h)", "variable": "Anno"},
+            title="Confronto Media Oraria Fatturato (€/h)",
+            color_discrete_sequence=["#a855f7", "#c084fc", "#e9d5ff"],
             text_auto=",.2f",
         )
         fig_media.update_traces(textposition="outside")
-        st.plotly_chart(fig_media, use_container_width=True)
-
-    with t6:
-        st.subheader(
-            "📊 TOTALE ANNO 2026 (PARZIALE GEN–LUG) - COSTI DEL PERSONALE"
+        st.plotly_chart(
+            layout_grafico_scuro(fig_media), use_container_width=True
         )
 
-        def evidenzia_totale(row):
-            if "TOTALE SINTEC" in row["COGNOME"]:
+    with t6:
+        st.subheader("📊 Totale Parziale 2026 - Costi e Ore Personale")
+
+        def style_totale(row):
+            if "TOTALE SINTEC" in str(row["COGNOME"]):
                 return [
-                    "background-color: #fff3cd; font-weight: bold; color: #856404"
+                    "background-color: rgba(59, 130, 246, 0.2); font-weight: bold; color: #60a5fa"
                 ] * len(row)
             return [""] * len(row)
 
         st.dataframe(
-            df_riassunto_2026.style.apply(evidenzia_totale, axis=1).format({
+            df_riassunto_2026.style.apply(style_totale, axis=1).format({
                 "COSTO TOT": "€ {:,.2f}",
                 "ORE TOT": "{:,.1f}",
                 "COSTO ORARIO": "€ {:,.2f}",
             }),
             use_container_width=True,
-            height=530,
+            height=450,
         )
 
         st.markdown("---")
-
-        st.subheader("🔎 Analisi Mese per Mese per Dipendente (Gen–Lug 2026)")
-        dipendente_scelto = st.selectbox(
-            "Seleziona un Dipendente per il dettaglio mensile:",
-            list(dati_dipendenti_mensili.keys()),
+        st.subheader("🔎 Dettaglio Mensile Dipendente")
+        dip_scelto = st.selectbox(
+            "Seleziona Dipendente:", list(dati_dipendenti_mensili.keys())
         )
-
-        costi_dip = dati_dipendenti_mensili[dipendente_scelto]["Costo"]
-        ore_dip = dati_dipendenti_mensili[dipendente_scelto]["Ore"]
 
         df_dip = pd.DataFrame({
             "Mese": mesi,
-            "Costo Totale (€)": costi_dip,
-            "Ore Totali": ore_dip,
+            "Costo Totale (€)": dati_dipendenti_mensili[dip_scelto]["Costo"],
+            "Ore Totali": dati_dipendenti_mensili[dip_scelto]["Ore"],
         })
         df_dip["Costo Orario (€/h)"] = (
             df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
         ).fillna(0).round(2)
 
-        st.write(
-            f"**Prospetto Mensile 2026 (Parziale Gen-Lug) - {dipendente_scelto}**"
-        )
         st.dataframe(
             df_dip.style.format({
                 "Costo Totale (€)": "€ {:,.2f}",
@@ -877,71 +987,71 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y="Costo Totale (€)",
             text_auto=",.0f",
-            title=f"Andamento Mensile Costi - {dipendente_scelto} (Gen–Lug 2026)",
+            color_discrete_sequence=["#38bdf8"],
+            title=f"Andamento Mensile Costi - {dip_scelto}",
         )
         fig_dip.update_traces(textposition="outside")
-        st.plotly_chart(fig_dip, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_dip), use_container_width=True
+        )
 
     with t7:
-        st.subheader("🍕 Ripartizione Percentuale del Fatturato per Cliente")
+        st.subheader("🍕 Quota Fatturato per Cliente")
 
-        col_pie1, col_pie2 = st.columns([1.2, 1])
+        col_p1, col_p2 = st.columns([1.1, 1])
 
-        with col_pie1:
+        with col_p1:
             fig_pie = px.pie(
                 df_clienti_2026,
                 values="Fatturato 2026",
                 names="Cliente",
-                title="Quota Fatturato per Cliente (Anno 2026 Gen–Lug)",
-                hole=0.3,
+                hole=0.4,
+                color_discrete_sequence=px.colors.qualitative.Pastel,
             )
-            fig_pie.update_traces(textposition="inside", textinfo="percent+label")
-            st.plotly_chart(fig_pie, use_container_width=True)
+            fig_pie.update_traces(
+                textposition="inside", textinfo="percent+label"
+            )
+            st.plotly_chart(
+                layout_grafico_scuro(fig_pie), use_container_width=True
+            )
 
-        with col_pie2:
-            st.markdown("#### 📋 Graduatoria Fatturato Clienti")
-            df_cli_sorted = df_clienti_2026.sort_values(
+        with col_p2:
+            st.markdown("#### 🏆 Graduatoria Clienti (2026 Gen–Lug)")
+            df_cli_s = df_clienti_2026.sort_values(
                 by="Fatturato 2026", ascending=False
             ).reset_index(drop=True)
-            tot_cli = df_cli_sorted["Fatturato 2026"].sum()
-            df_cli_sorted["% Sul Totale"] = (
-                df_cli_sorted["Fatturato 2026"] / tot_cli * 100
+            tot_cli = df_cli_s["Fatturato 2026"].sum()
+            df_cli_s["% Quota"] = (
+                df_cli_s["Fatturato 2026"] / tot_cli * 100
             ).round(2)
 
             st.dataframe(
-                df_cli_sorted.style.format({
+                df_cli_s.style.format({
                     "Fatturato 2026": "€ {:,.2f}",
-                    "% Sul Totale": "{:.2f} %",
+                    "% Quota": "{:.2f} %",
                 }),
                 use_container_width=True,
-                height=420,
+                height=380,
             )
 
         st.markdown("---")
-        st.subheader(
-            "🔎 Dettaglio Mensile per Cliente e Confronto Anni Precedenti"
-        )
-
-        cliente_scelto = st.selectbox(
-            "Seleziona un Cliente per visualizzare lo storico mensile:",
-            list(dati_clienti_mensili.keys()),
+        st.subheader("🔎 Storico Mensile del Singolo Cliente")
+        cli_scelto = st.selectbox(
+            "Seleziona Cliente:", list(dati_clienti_mensili.keys())
         )
 
         df_cli_m = pd.DataFrame({
             "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug"],
-            "Fatturato 2026 (€)": dati_clienti_mensili[cliente_scelto]["2026"],
-            "Fatturato 2025 (€)": dati_clienti_mensili[cliente_scelto]["2025"],
-            "Fatturato 2024 (€)": dati_clienti_mensili[cliente_scelto]["2024"],
+            "2026 (€)": dati_clienti_mensili[cli_scelto]["2026"],
+            "2025 (€)": dati_clienti_mensili[cli_scelto]["2025"],
+            "2024 (€)": dati_clienti_mensili[cli_scelto]["2024"],
         })
 
-        st.write(
-            f"**Andamento Mensile Fatturato (Gen–Lug) - {cliente_scelto}**"
-        )
         st.dataframe(
             df_cli_m.style.format({
-                "Fatturato 2026 (€)": "€ {:,.2f}",
-                "Fatturato 2025 (€)": "€ {:,.2f}",
-                "Fatturato 2024 (€)": "€ {:,.2f}",
+                "2026 (€)": "€ {:,.2f}",
+                "2025 (€)": "€ {:,.2f}",
+                "2024 (€)": "€ {:,.2f}",
             }),
             use_container_width=True,
         )
@@ -949,55 +1059,48 @@ if sezione == "📈 Dashboard Grafica":
         fig_cli_m = px.bar(
             df_cli_m,
             x="Mese",
-            y=[
-                "Fatturato 2026 (€)",
-                "Fatturato 2025 (€)",
-                "Fatturato 2024 (€)",
-            ],
+            y=["2026 (€)", "2025 (€)", "2024 (€)"],
             barmode="group",
-            title=f"Confronto Storico Mensile: {cliente_scelto} (2026 vs 2025 vs 2024)",
+            title=f"Storico Mensile: {cli_scelto}",
+            color_discrete_sequence=["#38bdf8", "#818cf8", "#c084fc"],
             text_auto=",.0f",
         )
         fig_cli_m.update_traces(textposition="outside")
-        st.plotly_chart(fig_cli_m, use_container_width=True)
+        st.plotly_chart(
+            layout_grafico_scuro(fig_cli_m), use_container_width=True
+        )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
-    st.subheader("Assistente Virtuale Sintec")
+    st.subheader("🤖 Assistente Virtuale Smart")
     st.write(
-        "Poni qualsiasi domanda relativa a Fatturato, Ore e Costi del Personale."
+        "Poni qualsiasi domanda in formato testo o vocale sui dati gestionali Sintec."
     )
 
-    col1, col2 = st.columns([3, 1])
-    with col1:
+    col_a1, col_a2 = st.columns([3, 1])
+    with col_a1:
         domanda = st.text_input(
-            "Scrivi una domanda:",
-            placeholder="Es. Qual è la percentuale di fatturato del cliente CALF nel 2026?",
+            "Chiedi all'Assistente:",
+            placeholder="Es. Qual è il previsionale del fatturato 2026 a 12 mesi?",
         )
-    with col2:
-        st.write("Oppure parla:")
+    with col_a2:
+        st.write("🎙️ Input Vocale:")
         audio = mic_recorder(
-            start_prompt="🎙️ Registra",
-            stop_prompt="⏹️ Ferma",
-            key="recorder",
-            format="wav",
+            start_prompt="Inizia", stop_prompt="Invia", key="rec", format="wav"
         )
 
     if domanda:
         st.markdown("---")
-        st.markdown("### 💡 Risposta dell'Assistente:")
+        st.markdown("### 💡 Risposta:")
 
         if "OPENAI_API_KEY" in st.secrets:
             try:
                 prompt_sistema = """
-                Sei l'assistente virtuale di Controllo di Gestione di Sintec S.r.l.
-                Rispondi in modo professionale, sintetico e preciso.
-                Dati aziendali principali:
-                - Fatturato 2026 Gen-Lug: € 490.149,83 | Previsionale 2026 (12 mesi): € 840.256,85 | Consuntivo 2025: € 801.134,71
-                - Costi Personale 2026 Gen-Lug: € 268.016,84 | Previsionale 2026 (12 mesi): € 459.457,44 | Consuntivo 2025: € 453.488,81
-                - Margine 2026 Gen-Lug: € 222.132,99 | Previsionale 2026 (12 mesi): € 380.799,41 | Consuntivo 2025: € 347.645,90
+                Sei l'assistente di Controllo di Gestione di Sintec S.r.l.
+                Dati aziendali essenziali:
+                - Fatturato 2026 Gen-Lug: € 490.149,83 | Previsionale 12M: € 840.256,85 | Consuntivo 2025: € 801.134,71
+                - Costi Personale 2026 Gen-Lug: € 268.016,84 | Previsionale 12M: € 459.457,44 | Consuntivo 2025: € 453.488,81
+                - Margine 2026 Gen-Lug: € 222.132,99 | Previsionale 12M: € 380.799,41 | Consuntivo 2025: € 347.645,90
                 - Media Oraria 2026 Gen-Lug: € 31,42/h | Consuntivo 2025: € 30,12/h
-                - Ore Dirette 2026 Gen-Lug: 14.114,0 h | Previsionale 2026: 24.195,4 h | Consuntivo 2025: 25.026,0 h
-                - Ore Indirette 2026 Gen-Lug: 1.488,5 h | Previsionale 2026: 2.551,7 h | Consuntivo 2025: 1.573,0 h
                 """
                 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                 response = client.chat.completions.create(
@@ -1007,57 +1110,6 @@ elif sezione == "🤖 Assistente IA (Testo e Voce)":
                         {"role": "user", "content": domanda},
                     ],
                 )
-                risposta = response.choices[0].message.content
-                st.success(risposta)
+                st.success(response.choices[0].message.content)
             except Exception as e:
-                st.error(f"Errore nell'elaborazione dell'API OpenAI: {e}")
-
-        domanda_lower = domanda.lower()
-
-        if "media oraria" in domanda_lower:
-            fig_m = px.bar(
-                df_media_oraria.iloc[:7],
-                x="Mese",
-                y=["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"],
-                barmode="group",
-                title="💶 Media Oraria (€/h): 2026 vs 2025 vs 2024 (Gen-Lug)",
-                text_auto=",.2f",
-            )
-            fig_m.update_traces(textposition="outside")
-            st.plotly_chart(fig_m, use_container_width=True)
-
-        elif "ore dirette" in domanda_lower:
-            fig_a = px.bar(
-                df_ore_dirette.iloc[:7],
-                x="Mese",
-                y=["Ore Dirette 2026", "Ore Dirette 2025"],
-                barmode="group",
-                title="⏱️ Andamento Ore Dirette: 2026 vs 2025 (Gen-Lug)",
-                text_auto=",.1f",
-            )
-            fig_a.update_traces(textposition="outside")
-            st.plotly_chart(fig_a, use_container_width=True)
-
-        elif "ore indirette" in domanda_lower:
-            fig_b = px.bar(
-                df_ore_indirette.iloc[:7],
-                x="Mese",
-                y=["Ore Indirette 2026", "Ore Indirette 2025"],
-                barmode="group",
-                title="⚙️ Andamento Ore Indirette: 2026 vs 2025 (Gen-Lug)",
-                text_auto=",.1f",
-            )
-            fig_b.update_traces(textposition="outside")
-            st.plotly_chart(fig_b, use_container_width=True)
-
-        elif "fatturato" in domanda_lower or "grafico" in domanda_lower:
-            fig_c = px.bar(
-                df_fat.iloc[:7],
-                x="Mese",
-                y=["Fatturato 2026", "Fatturato 2025"],
-                barmode="group",
-                title="📊 Andamento Fatturato: 2026 vs 2025 (Gen-Lug)",
-                text_auto=",.0f",
-            )
-            fig_c.update_traces(textposition="outside")
-            st.plotly_chart(fig_c, use_container_width=True)
+                st.error(f"Errore API OpenAI: {e}")
