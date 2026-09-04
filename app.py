@@ -107,8 +107,11 @@ st.markdown(
 
 # --- FUNZIONE STILE RIGHE DI TOTALE ---
 def evidenzia_totale(row, col_chiave="Mese"):
-    if str(row[col_chiave]).upper() in ["TOTALE", "TOTALE FATTURATO", "TOTALE SINTEC (MEDIA GEN-LUG)"]:
+    val = str(row[col_chiave]).upper()
+    if val in ["TOTALE", "TOTALE FATTURATO", "TOTALE SINTEC (MEDIA GEN-LUG)"]:
         return ['background-color: #dbeafe; font-weight: bold; color: #1e40af'] * len(row)
+    elif "PREVISIONALE" in val:
+        return ['background-color: #fef08a; font-weight: bold; color: #854d0e'] * len(row)
     return [''] * len(row)
 
 # --- LOGIN ---
@@ -271,20 +274,23 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    # METRICHE TOP DASHBOARD
+    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
     tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
     tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
+    prev_f_26 = (tot_f_26 / 7) * 12
     delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
 
     tot_c_26 = df_costi["Costi 2026"].head(7).sum()
     tot_c_25 = df_costi["Costi 2025"].head(7).sum()
     tot_c_25_tot = df_costi["Costi 2025"].sum()
+    prev_c_26 = (tot_c_26 / 7) * 12
     delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
 
     mol_26 = tot_f_26 - tot_c_26
     mol_25 = tot_f_25 - tot_c_25
     mol_25_tot = tot_f_25_tot - tot_c_25_tot
+    prev_mol_26 = prev_f_26 - prev_c_26
     delta_m = ((mol_26 - mol_25) / mol_25) * 100 if mol_25 != 0 else 0
 
     class_f = "kpi-delta-pos" if delta_f >= 0 else "kpi-delta-neg"
@@ -298,6 +304,7 @@ if sezione == "📈 Dashboard Grafica":
         <div class="kpi-title">Fatturato Gen-Lug 2026</div>
         <div class="kpi-value">€ {tot_f_26:,.2f}</div>
         <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {tot_f_25:,.2f}</b> <span class="{class_f}">({delta_f:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Previsionale 12M 2026: <b>€ {prev_f_26:,.2f}</b></div>
         <div class="kpi-subtitle">Totale Anno 2025: <b>€ {tot_f_25_tot:,.2f}</b></div>
     </div>
     ''', unsafe_allow_html=True)
@@ -307,6 +314,7 @@ if sezione == "📈 Dashboard Grafica":
         <div class="kpi-title">Costi Personale Gen-Lug 2026</div>
         <div class="kpi-value" style="color:#e11d48;">€ {tot_c_26:,.2f}</div>
         <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {tot_c_25:,.2f}</b> <span class="{class_c}">({delta_c:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Previsionale 12M 2026: <b>€ {prev_c_26:,.2f}</b></div>
         <div class="kpi-subtitle">Totale Anno 2025: <b>€ {tot_c_25_tot:,.2f}</b></div>
     </div>
     ''', unsafe_allow_html=True)
@@ -316,6 +324,7 @@ if sezione == "📈 Dashboard Grafica":
         <div class="kpi-title">Margine Operativo Gen-Lug 2026</div>
         <div class="kpi-value" style="color:#16a34a;">€ {mol_26:,.2f}</div>
         <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {mol_25:,.2f}</b> <span class="{class_m}">({delta_m:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Previsionale 12M 2026: <b>€ {prev_mol_26:,.2f}</b></div>
         <div class="kpi-subtitle">Totale Anno 2025: <b>€ {mol_25_tot:,.2f}</b></div>
     </div>
     ''', unsafe_allow_html=True)
@@ -333,6 +342,18 @@ if sezione == "📈 Dashboard Grafica":
     # TAB 1: FATTURATO
     with t1:
         st.subheader("📊 Confronto Fatturato Mensile Generale")
+        
+        f_26_tot_m = df_fat["Fatturato 2026"].sum()
+        f_25_tot_m = df_fat["Fatturato 2025"].sum()
+        f_24_tot_m = df_fat["Fatturato 2024"].sum()
+        f_26_prev_m = (f_26_tot_m / 7) * 12
+        
+        c_f1, c_f2, c_f3, c_f4 = st.columns(4)
+        c_f1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato YTD 2026</div><div class="kpi-value">€ {f_26_tot_m:,.2f}</div><div class="kpi-subtitle">Gen-Lug 2026 (7M)</div></div>', unsafe_allow_html=True)
+        c_f2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#2563eb;">€ {f_26_prev_m:,.2f}</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
+        c_f3.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Fatturato 2025</div><div class="kpi-value">€ {f_25_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+        c_f4.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Fatturato 2024</div><div class="kpi-value">€ {f_24_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+
         fig_f = px.bar(
             df_fat,
             x="Mese",
@@ -351,10 +372,16 @@ if sezione == "📈 Dashboard Grafica":
         df_fat_tot = pd.concat([
             df_fat,
             pd.DataFrame([{
-                "Mese": "TOTALE",
-                "Fatturato 2026": df_fat["Fatturato 2026"].sum(),
-                "Fatturato 2025": df_fat["Fatturato 2025"].sum(),
-                "Fatturato 2024": df_fat["Fatturato 2024"].sum()
+                "Mese": "TOTALE YTD (7M)",
+                "Fatturato 2026": f_26_tot_m,
+                "Fatturato 2025": tot_f_25,
+                "Fatturato 2024": df_fat["Fatturato 2024"].head(7).sum()
+            }]),
+            pd.DataFrame([{
+                "Mese": "PREVISIONALE 12M 2026",
+                "Fatturato 2026": f_26_prev_m,
+                "Fatturato 2025": f_25_tot_m,
+                "Fatturato 2024": f_24_tot_m
             }])
         ], ignore_index=True)
 
@@ -370,6 +397,18 @@ if sezione == "📈 Dashboard Grafica":
     # TAB 2: COSTI PERSONALE
     with t2:
         st.subheader("👥 Costi Personale Mensili")
+        
+        c_26_tot_m = df_costi["Costi 2026"].sum()
+        c_25_tot_m = df_costi["Costi 2025"].sum()
+        c_24_tot_m = df_costi["Costi 2024"].sum()
+        c_26_prev_m = (c_26_tot_m / 7) * 12
+
+        c_c1, c_c2, c_c3, c_c4 = st.columns(4)
+        c_c1.markdown(f'<div class="kpi-card"><div class="kpi-title">Costi YTD 2026</div><div class="kpi-value" style="color:#e11d48;">€ {c_26_tot_m:,.2f}</div><div class="kpi-subtitle">Gen-Lug 2026 (7M)</div></div>', unsafe_allow_html=True)
+        c_c2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#e11d48;">€ {c_26_prev_m:,.2f}</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
+        c_c3.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Costi 2025</div><div class="kpi-value">€ {c_25_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+        c_c4.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Costi 2024</div><div class="kpi-value">€ {c_24_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+
         fig_c = px.bar(
             df_costi,
             x="Mese",
@@ -388,10 +427,16 @@ if sezione == "📈 Dashboard Grafica":
         df_costi_tot = pd.concat([
             df_costi,
             pd.DataFrame([{
-                "Mese": "TOTALE",
-                "Costi 2026": df_costi["Costi 2026"].sum(),
-                "Costi 2025": df_costi["Costi 2025"].sum(),
-                "Costi 2024": df_costi["Costi 2024"].sum()
+                "Mese": "TOTALE YTD (7M)",
+                "Costi 2026": c_26_tot_m,
+                "Costi 2025": tot_c_25,
+                "Costi 2024": df_costi["Costi 2024"].head(7).sum()
+            }]),
+            pd.DataFrame([{
+                "Mese": "PREVISIONALE 12M 2026",
+                "Costi 2026": c_26_prev_m,
+                "Costi 2025": c_25_tot_m,
+                "Costi 2024": c_24_tot_m
             }])
         ], ignore_index=True)
 
@@ -407,6 +452,16 @@ if sezione == "📈 Dashboard Grafica":
     # TAB 3: ORE DIRETTE
     with t3:
         st.subheader("⏱️ Ore Dirette Lavorate")
+        
+        od_26_tot = df_ore_dirette["Ore Dirette 2026"].sum()
+        od_25_tot = df_ore_dirette["Ore Dirette 2025"].sum()
+        od_26_prev = (od_26_tot / 7) * 12
+
+        c_od1, c_od2, c_od3 = st.columns(3)
+        c_od1.markdown(f'<div class="kpi-card"><div class="kpi-title">Ore Dirette YTD 2026</div><div class="kpi-value" style="color:#16a34a;">{od_26_tot:,.1f} h</div><div class="kpi-subtitle">Gen-Lug 2026</div></div>', unsafe_allow_html=True)
+        c_od2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#16a34a;">{od_26_prev:,.1f} h</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
+        c_od3.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Ore Dirette 2025</div><div class="kpi-value">{od_25_tot:,.1f} h</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+
         fig_dir = px.bar(
             df_ore_dirette,
             x="Mese",
@@ -425,9 +480,14 @@ if sezione == "📈 Dashboard Grafica":
         df_ore_dir_tot = pd.concat([
             df_ore_dirette,
             pd.DataFrame([{
-                "Mese": "TOTALE",
-                "Ore Dirette 2026": df_ore_dirette["Ore Dirette 2026"].sum(),
-                "Ore Dirette 2025": df_ore_dirette["Ore Dirette 2025"].sum()
+                "Mese": "TOTALE YTD (7M)",
+                "Ore Dirette 2026": od_26_tot,
+                "Ore Dirette 2025": df_ore_dirette["Ore Dirette 2025"].head(7).sum()
+            }]),
+            pd.DataFrame([{
+                "Mese": "PREVISIONALE 12M 2026",
+                "Ore Dirette 2026": od_26_prev,
+                "Ore Dirette 2025": od_25_tot
             }])
         ], ignore_index=True)
 
@@ -442,6 +502,16 @@ if sezione == "📈 Dashboard Grafica":
     # TAB 4: ORE INDIRETTE
     with t4:
         st.subheader("⚙️ Ore Indirette (Gestione/Struttura)")
+        
+        oi_26_tot = df_ore_indirette["Ore Indirette 2026"].sum()
+        oi_25_tot = df_ore_indirette["Ore Indirette 2025"].sum()
+        oi_26_prev = (oi_26_tot / 7) * 12
+
+        c_oi1, c_oi2, c_oi3 = st.columns(3)
+        c_oi1.markdown(f'<div class="kpi-card"><div class="kpi-title">Ore Indirette YTD 2026</div><div class="kpi-value" style="color:#d97706;">{oi_26_tot:,.1f} h</div><div class="kpi-subtitle">Gen-Lug 2026</div></div>', unsafe_allow_html=True)
+        c_oi2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#d97706;">{oi_26_prev:,.1f} h</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
+        c_oi3.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Ore Indirette 2025</div><div class="kpi-value">{oi_25_tot:,.1f} h</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
+
         fig_ind = px.bar(
             df_ore_indirette,
             x="Mese",
@@ -460,9 +530,14 @@ if sezione == "📈 Dashboard Grafica":
         df_ore_ind_tot = pd.concat([
             df_ore_indirette,
             pd.DataFrame([{
-                "Mese": "TOTALE",
-                "Ore Indirette 2026": df_ore_indirette["Ore Indirette 2026"].sum(),
-                "Ore Indirette 2025": df_ore_indirette["Ore Indirette 2025"].sum()
+                "Mese": "TOTALE YTD (7M)",
+                "Ore Indirette 2026": oi_26_tot,
+                "Ore Indirette 2025": df_ore_indirette["Ore Indirette 2025"].head(7).sum()
+            }]),
+            pd.DataFrame([{
+                "Mese": "PREVISIONALE 12M 2026",
+                "Ore Indirette 2026": oi_26_prev,
+                "Ore Indirette 2025": oi_25_tot
             }])
         ], ignore_index=True)
 
@@ -477,6 +552,16 @@ if sezione == "📈 Dashboard Grafica":
     # TAB 5: MEDIA ORARIA
     with t5:
         st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
+        
+        mo_26_med = df_media_oraria["Media Oraria 2026"][df_media_oraria["Media Oraria 2026"] > 0].mean()
+        mo_25_med = df_media_oraria["Media Oraria 2025"][df_media_oraria["Media Oraria 2025"] > 0].mean()
+        mo_24_med = df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean()
+
+        c_m1, c_m2, c_m3 = st.columns(3)
+        c_m1.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2026</div><div class="kpi-value" style="color:#9333ea;">€ {mo_26_med:,.2f}/h</div><div class="kpi-subtitle">Media Gen-Lug 2026</div></div>', unsafe_allow_html=True)
+        c_m2.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2025</div><div class="kpi-value">€ {mo_25_med:,.2f}/h</div><div class="kpi-subtitle">Media Anno 2025</div></div>', unsafe_allow_html=True)
+        c_m3.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2024</div><div class="kpi-value">€ {mo_24_med:,.2f}/h</div><div class="kpi-subtitle">Media Anno 2024</div></div>', unsafe_allow_html=True)
+
         fig_media = px.bar(
             df_media_oraria,
             x="Mese",
@@ -495,10 +580,10 @@ if sezione == "📈 Dashboard Grafica":
         df_media_tot = pd.concat([
             df_media_oraria,
             pd.DataFrame([{
-                "Mese": "TOTALE",
-                "Media Oraria 2026": df_media_oraria["Media Oraria 2026"][df_media_oraria["Media Oraria 2026"] > 0].mean(),
-                "Media Oraria 2025": df_media_oraria["Media Oraria 2025"][df_media_oraria["Media Oraria 2025"] > 0].mean(),
-                "Media Oraria 2024": df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean()
+                "Mese": "TOTALE MEDIA",
+                "Media Oraria 2026": mo_26_med,
+                "Media Oraria 2025": mo_25_med,
+                "Media Oraria 2024": mo_24_med
             }])
         ], ignore_index=True)
 
@@ -535,6 +620,17 @@ if sezione == "📈 Dashboard Grafica":
         })
         df_dip["Costo Orario (€/h)"] = (df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]).fillna(0).round(2)
 
+        tot_c_dip = df_dip["Costo Totale (€)"].sum()
+        tot_o_dip = df_dip["Ore Totali"].sum()
+        med_co_dip = (tot_c_dip / tot_o_dip) if tot_o_dip > 0 else 0
+        prev_c_dip = (tot_c_dip / 7) * 12
+
+        c_d1, c_d2, c_d3, c_d4 = st.columns(4)
+        c_d1.markdown(f'<div class="kpi-card"><div class="kpi-title">Costo YTD 2026</div><div class="kpi-value">€ {tot_c_dip:,.2f}</div><div class="kpi-subtitle">{dip_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_d2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M</div><div class="kpi-value" style="color:#2563eb;">€ {prev_c_dip:,.2f}</div><div class="kpi-subtitle">Proiezione 2026</div></div>', unsafe_allow_html=True)
+        c_d3.markdown(f'<div class="kpi-card"><div class="kpi-title">Ore Totali YTD</div><div class="kpi-value">{tot_o_dip:,.1f} h</div><div class="kpi-subtitle">{dip_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_d4.markdown(f'<div class="kpi-card"><div class="kpi-title">Costo Orario Medio</div><div class="kpi-value">€ {med_co_dip:,.2f}/h</div><div class="kpi-subtitle">{dip_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+
         fig_dip = px.bar(
             df_dip[df_dip["Ore Totali"] > 0],
             x="Mese",
@@ -549,16 +645,18 @@ if sezione == "📈 Dashboard Grafica":
         st.plotly_chart(layout_grafico_chiaro(fig_dip), use_container_width=True)
 
         st.markdown(f"#### 📋 Tabella Dati Mensili - {dip_scelto}")
-        tot_c_dip = df_dip["Costo Totale (€)"].sum()
-        tot_o_dip = df_dip["Ore Totali"].sum()
-        med_co_dip = (tot_c_dip / tot_o_dip) if tot_o_dip > 0 else 0
-
         df_dip_tot = pd.concat([
             df_dip,
             pd.DataFrame([{
-                "Mese": "TOTALE",
+                "Mese": "TOTALE YTD (7M)",
                 "Costo Totale (€)": tot_c_dip,
                 "Ore Totali": tot_o_dip,
+                "Costo Orario (€/h)": med_co_dip
+            }]),
+            pd.DataFrame([{
+                "Mese": "PREVISIONALE 12M 2026",
+                "Costo Totale (€)": prev_c_dip,
+                "Ore Totali": (tot_o_dip / 7) * 12,
                 "Costo Orario (€/h)": med_co_dip
             }])
         ], ignore_index=True)
@@ -640,6 +738,17 @@ if sezione == "📈 Dashboard Grafica":
 
         st.session_state["cliente_selezionato"] = cli_scelto
 
+        tot_2026 = sum(dati_clienti_mensili[cli_scelto]["2026"])
+        tot_2025 = sum(dati_clienti_mensili[cli_scelto]["2025"])
+        tot_2024 = sum(dati_clienti_mensili[cli_scelto]["2024"])
+        prev_2026_cli = (tot_2026 / 7) * 12
+
+        c_cli1, c_cli2, c_cli3, c_cli4 = st.columns(4)
+        c_cli1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2026 YTD</div><div class="kpi-value">€ {tot_2026:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_cli2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#2563eb;">€ {prev_2026_cli:,.2f}</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
+        c_cli3.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2025 YTD</div><div class="kpi-value">€ {tot_2025:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_cli4.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2024 YTD</div><div class="kpi-value">€ {tot_2024:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+
         df_cli_m = pd.DataFrame({
             "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug"],
             "2026 (€)": dati_clienti_mensili[cli_scelto]["2026"],
@@ -647,18 +756,21 @@ if sezione == "📈 Dashboard Grafica":
             "2024 (€)": dati_clienti_mensili[cli_scelto]["2024"],
         })
 
-        tot_2026 = sum(dati_clienti_mensili[cli_scelto]["2026"])
-        tot_2025 = sum(dati_clienti_mensili[cli_scelto]["2025"])
-        tot_2024 = sum(dati_clienti_mensili[cli_scelto]["2024"])
-
         df_tot_cliente = pd.DataFrame([{
-            "Mese": "TOTALE",
+            "Mese": "TOTALE YTD (7M)",
             "2026 (€)": tot_2026,
             "2025 (€)": tot_2025,
             "2024 (€)": tot_2024
         }])
 
-        df_cli_m_tot = pd.concat([df_cli_m, df_tot_cliente], ignore_index=True)
+        df_prev_cliente = pd.DataFrame([{
+            "Mese": "PREVISIONALE 12M 2026",
+            "2026 (€)": prev_2026_cli,
+            "2025 (€)": tot_2025,
+            "2024 (€)": tot_2024
+        }])
+
+        df_cli_m_tot = pd.concat([df_cli_m, df_tot_cliente, df_prev_cliente], ignore_index=True)
 
         col_t1, col_t2 = st.columns([1, 1.2])
 
