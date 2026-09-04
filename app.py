@@ -141,7 +141,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI (AGGIORNATI CON FILE UFFICIALE COSTI DIPENDENTI 2025) ---
+# --- DATI GENERALI ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 0, 0, 0, 0, 0],
@@ -188,6 +188,15 @@ dati_dipendenti_mensili = {
     "BASSISSI": {"Costo": [2169.70, 2337.50, 2361.92, 2332.02, 2406.59, 2407.38, 1520.40, 0, 0, 0, 0, 0], "Ore": [143.5, 160.0, 176.0, 168.0, 158.0, 157.0, 96.0, 0, 0, 0, 0, 0]},
     "CASELLI": {"Costo": [3504.50, 3749.44, 4035.38, 4073.36, 3925.75, 3846.69, 2635.19, 0, 0, 0, 0, 0], "Ore": [125.0, 140.0, 151.0, 129.5, 137.5, 141.0, 86.0, 0, 0, 0, 0, 0]},
     "LANZI": {"Costo": [2949.79, 3225.64, 3455.40, 3518.32, 3244.59, 3093.37, 2944.15, 0, 0, 0, 0, 0], "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0]},
+    "GUION": {"Costo": [1634.38, 1777.23, 1888.82, 1856.84, 1812.38, 1821.98, 649.00, 0, 0, 0, 0, 0], "Ore": [108.0, 115.0, 122.0, 120.0, 118.0, 118.0, 42.0, 0, 0, 0, 0, 0]},
+    "CAMPANINI": {"Costo": [3540.20, 3812.10, 3950.40, 3880.12, 3910.45, 3940.22, 1747.34, 0, 0, 0, 0, 0], "Ore": [172.0, 185.0, 192.0, 188.0, 190.0, 191.0, 85.0, 0, 0, 0, 0, 0]},
+    "JOHNSON": {"Costo": [2868.45, 3088.12, 3210.50, 3150.00, 3190.23, 3215.80, 1342.36, 0, 0, 0, 0, 0], "Ore": [148.0, 159.0, 165.0, 162.0, 164.0, 165.0, 70.5, 0, 0, 0, 0, 0]},
+    "RASENTI": {"Costo": [5078.20, 5462.10, 5688.40, 5580.30, 5650.12, 5700.45, 2378.18, 0, 0, 0, 0, 0], "Ore": [191.5, 206.0, 215.0, 210.5, 213.0, 215.0, 90.0, 0, 0, 0, 0, 0]},
+    "MAGNO": {"Costo": [3426.80, 3689.40, 3841.20, 3770.10, 3818.50, 3850.30, 1590.29, 0, 0, 0, 0, 0], "Ore": [172.5, 185.5, 193.0, 189.5, 192.0, 193.5, 81.5, 0, 0, 0, 0, 0]},
+    "SCANO": {"Costo": [3408.10, 3669.20, 3820.10, 3749.12, 3798.20, 3828.40, 1580.29, 0, 0, 0, 0, 0], "Ore": [137.0, 147.5, 153.5, 150.5, 152.5, 153.8, 65.2, 0, 0, 0, 0, 0]},
+    "PETRO'": {"Costo": [2728.30, 2937.10, 3058.40, 3001.20, 3040.12, 3064.20, 1268.99, 0, 0, 0, 0, 0], "Ore": [165.0, 177.5, 185.0, 181.5, 184.0, 185.5, 76.0, 0, 0, 0, 0, 0]},
+    "GRANDE": {"Costo": [2804.50, 3019.20, 3143.80, 3085.10, 3125.40, 3150.10, 1303.34, 0, 0, 0, 0, 0], "Ore": [101.5, 109.0, 113.5, 111.5, 113.0, 113.8, 47.2, 0, 0, 0, 0, 0]},
+    "DEJVI (luglio-sett.)": {"Costo": [0, 0, 0, 0, 0, 0, 2642.86, 0, 0, 0, 0, 0], "Ore": [0, 0, 0, 0, 0, 0, 304.5, 0, 0, 0, 0, 0]}
 }
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
@@ -281,7 +290,7 @@ with col_head_btn:
 
 if sezione == "📈 Dashboard Grafica":
 
-    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI E DATI 2025 CORRETTI
+    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
     tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
     tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
@@ -289,8 +298,8 @@ if sezione == "📈 Dashboard Grafica":
     delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
 
     tot_c_26 = df_costi["Costi 2026"].head(7).sum()
-    tot_c_25 = df_costi["Costi 2025"].head(7).sum()  # € 268.036,42
-    tot_c_25_tot = df_costi["Costi 2025"].sum()       # € 453.912,92
+    tot_c_25 = df_costi["Costi 2025"].head(7).sum()
+    tot_c_25_tot = df_costi["Costi 2025"].sum()
     prev_c_26 = (tot_c_26 / 7) * 12
     delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
 
@@ -403,7 +412,7 @@ if sezione == "📈 Dashboard Grafica":
 
     # TAB 2: COSTI PERSONALE
     with t2:
-        st.subheader("👥 Costi Personale Mensili")
+        st.subheader("👥 Costi Personale Mensili e Dettaglio Singolo Dipendente")
         
         c_26_tot_m = df_costi["Costi 2026"].sum()
         c_25_tot_m = df_costi["Costi 2025"].sum()
@@ -421,7 +430,7 @@ if sezione == "📈 Dashboard Grafica":
             x="Mese",
             y=["Costi 2026", "Costi 2025", "Costi 2024"],
             barmode="group",
-            title="Andamento Costi Personale (€)",
+            title="Andamento Costi Personale Complessivi (€)",
             color_discrete_sequence=["#e11d48", "#f43f5e", "#fda4af"],
             text_auto=",.0f"
         )
@@ -455,6 +464,65 @@ if sezione == "📈 Dashboard Grafica":
             }),
             use_container_width=True
         )
+
+        st.markdown("---")
+        st.subheader("🔎 Filtra per Singolo Dipendente nella Scheda Costi")
+        dip_scelto_tab2 = st.selectbox("Seleziona Dipendente da Analizzare:", list(dati_dipendenti_mensili.keys()), key="select_dip_tab2")
+
+        df_dip_t2 = pd.DataFrame({
+            "Mese": mesi,
+            "Costo Totale (€)": dati_dipendenti_mensili[dip_scelto_tab2]["Costo"],
+            "Ore Totali": dati_dipendenti_mensili[dip_scelto_tab2]["Ore"]
+        })
+        df_dip_t2["Costo Orario (€/h)"] = (df_dip_t2["Costo Totale (€)"] / df_dip_t2["Ore Totali"]).fillna(0).round(2)
+
+        tot_c_dip2 = df_dip_t2["Costo Totale (€)"].sum()
+        tot_o_dip2 = df_dip_t2["Ore Totali"].sum()
+        med_co_dip2 = (tot_c_dip2 / tot_o_dip2) if tot_o_dip2 > 0 else 0
+        prev_c_dip2 = (tot_c_dip2 / 7) * 12
+
+        col_dt1, col_dt2 = st.columns([1, 1.2])
+
+        with col_dt1:
+            st.markdown(f"#### 📄 Dettaglio Costi e Ore: **{dip_scelto_tab2}**")
+            df_dip_tot2 = pd.concat([
+                df_dip_t2,
+                pd.DataFrame([{
+                    "Mese": "TOTALE YTD (7M)",
+                    "Costo Totale (€)": tot_c_dip2,
+                    "Ore Totali": tot_o_dip2,
+                    "Costo Orario (€/h)": med_co_dip2
+                }]),
+                pd.DataFrame([{
+                    "Mese": "PREVISIONALE 12M 2026",
+                    "Costo Totale (€)": prev_c_dip2,
+                    "Ore Totali": (tot_o_dip2 / 7) * 12,
+                    "Costo Orario (€/h)": med_co_dip2
+                }])
+            ], ignore_index=True)
+
+            st.dataframe(
+                df_dip_tot2.style.apply(evidenzia_totale, col_chiave="Mese", axis=1).format({
+                    "Costo Totale (€)": "€ {:,.2f}",
+                    "Ore Totali": "{:,.1f} h",
+                    "Costo Orario (€/h)": "€ {:,.2f}"
+                }),
+                use_container_width=True
+            )
+
+        with col_dt2:
+            fig_dip2 = px.bar(
+                df_dip_t2[df_dip_t2["Ore Totali"] > 0],
+                x="Mese",
+                y="Costo Totale (€)",
+                text_auto=",.0f",
+                color_discrete_sequence=["#e11d48"],
+                title=f"Andamento Mensile Costi - {dip_scelto_tab2}"
+            )
+            max_val = df_dip_t2["Costo Totale (€)"].max()
+            fig_dip2.update_traces(textposition="outside", textfont_size=8)
+            fig_dip2.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
+            st.plotly_chart(layout_grafico_chiaro(fig_dip2), use_container_width=True)
 
     # TAB 3: ORE DIRETTE
     with t3:
@@ -618,7 +686,7 @@ if sezione == "📈 Dashboard Grafica":
 
         st.markdown("---")
         st.subheader("🔎 Dettaglio Mensile Dipendente")
-        dip_scelto = st.selectbox("Seleziona Dipendente:", list(dati_dipendenti_mensili.keys()))
+        dip_scelto = st.selectbox("Seleziona Dipendente:", list(dati_dipendenti_mensili.keys()), key="select_dip_tab6")
 
         df_dip = pd.DataFrame({
             "Mese": mesi,
