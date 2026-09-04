@@ -264,15 +264,22 @@ sezione = st.sidebar.radio(
     ["📈 Dashboard Grafica", "🤖 Assistente IA (Testo e Voce)"]
 )
 
-st.sidebar.markdown("---")
-st.sidebar.link_button(
-    "📓 Apri Google Notebook",
-    "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
-    use_container_width=True
-)
+# --- INTESTAZIONE PRINCIPALE DELL'APP ---
+col_head_title, col_head_btn = st.columns([3, 1])
+with col_head_title:
+    if sezione == "📈 Dashboard Grafica":
+        st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
+    else:
+        st.markdown("## 🤖 Assistente IA Gestionale")
+with col_head_btn:
+    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+    st.link_button(
+        "📓 Apri Google Notebook",
+        "https://notebook.google.com/notebook/e4078841-d0c1-4aed-8a70-1ee190c51016",
+        use_container_width=True
+    )
 
 if sezione == "📈 Dashboard Grafica":
-    st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
     # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
     tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
@@ -797,7 +804,6 @@ if sezione == "📈 Dashboard Grafica":
             st.plotly_chart(layout_grafico_chiaro(fig_cli_m), use_container_width=True)
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
-    st.subheader("🤖 Assistente IA Gestionale")
     domanda = st.text_input("Chiedi all'Assistente sui dati o sui clienti (es. Wittur, Sidel, ACMI/SACMI, etc.):")
     if domanda and "OPENAI_API_KEY" in st.secrets:
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
