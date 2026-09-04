@@ -119,7 +119,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI AMMINISTRATIVI (AGGIORNATI A LUGLIO 2026) ---
+# --- DATI GENERALI AMMINISTRATIVI (CONSOLIDATI A LUGLIO 2026) ---
 df_fat = pd.DataFrame({
     "Mese": [
         "Gen",
@@ -387,6 +387,160 @@ df_media_oraria = pd.DataFrame({
     ],
 })
 
+# --- DATI DIPENDENTI 2026 ---
+df_riassunto_2026 = pd.DataFrame({
+    "COGNOME": [
+        "D'ALSAZIA",
+        "BASSISSI",
+        "CASELLI",
+        "LANZI",
+        "GUION",
+        "CAMPANINI",
+        "JOHNSON",
+        "RASENTI",
+        "MAGNO",
+        "SCANO",
+        "PETRO'",
+        "GRANDE",
+        "DEJVI (luglio-sett.)",
+        "TOTALE SINTEC (MEDIA GEN-LUG)",
+    ],
+    "COSTO TOT": [
+        25885.34,
+        15535.51,
+        25770.31,
+        22431.26,
+        11440.63,
+        24780.83,
+        20065.46,
+        35537.75,
+        23986.59,
+        23853.41,
+        19098.31,
+        19631.44,
+        2642.86,
+        270659.70,
+    ],
+    "ORE TOT": [
+        1222.5,
+        1186.5,
+        1017.0,
+        1166.5,
+        741.0,
+        1203.0,
+        1033.5,
+        1341.0,
+        1207.5,
+        960.0,
+        1154.5,
+        709.5,
+        304.5,
+        13247.0,
+    ],
+    "COSTO ORARIO": [
+        21.17,
+        13.09,
+        25.34,
+        19.23,
+        15.44,
+        20.60,
+        19.42,
+        26.50,
+        19.86,
+        24.85,
+        16.54,
+        27.67,
+        8.68,
+        20.43,
+    ],
+})
+
+dati_dipendenti_mensili = {
+    "D'ALSAZIA": {
+        "Costo": [
+            3693.39,
+            3960.66,
+            3857.07,
+            3922.04,
+            3889.52,
+            4007.63,
+            2555.03,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [150.5, 166.5, 172.5, 168.5, 163.0, 168.0, 105.5, 0, 0, 0, 0, 0],
+    },
+    "BASSISSI": {
+        "Costo": [
+            2169.70,
+            2337.50,
+            2361.92,
+            2332.02,
+            2406.59,
+            2407.38,
+            1520.40,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [143.5, 160.0, 176.0, 168.0, 158.0, 157.0, 96.0, 0, 0, 0, 0, 0],
+    },
+    "CASELLI": {
+        "Costo": [
+            3504.50,
+            3749.44,
+            4035.38,
+            4073.36,
+            3925.75,
+            3846.69,
+            2635.19,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [125.0, 140.0, 151.0, 129.5, 137.5, 141.0, 86.0, 0, 0, 0, 0, 0],
+    },
+    "LANZI": {
+        "Costo": [
+            2949.79,
+            3225.64,
+            3455.40,
+            3518.32,
+            3244.59,
+            3093.37,
+            2944.15,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+        "Ore": [137.0, 157.5, 175.0, 167.0, 150.5, 144.0, 152.0, 0, 0, 0, 0, 0],
+    },
+}
+
+mesi = [
+    "Gen",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mag",
+    "Giu",
+    "Lug",
+    "Ago",
+    "Set",
+    "Ott",
+    "Nov",
+    "Dic",
+]
+
 # --- DATI DETTAGLIATI CLIENTI ---
 df_clienti_2026 = pd.DataFrame({
     "Cliente": [
@@ -566,15 +720,176 @@ st.sidebar.link_button(
 if sezione == "📈 Dashboard Grafica":
     st.markdown("## 📊 Controllo di Gestione - **Sintec S.r.l.**")
 
-    t1, t2, t3, t4, t5 = st.tabs([
-        "🍕 Analisi Clienti",
-        "📊 Fatturato",
+    # METRICHE TOP DASHBOARD
+    tot_f_26 = df_fat["Fatturato 2026"].sum()
+    tot_c_26 = df_costi["Costi 2026"].sum()
+    mol_26 = tot_f_26 - tot_c_26
+
+    col_k1, col_k2, col_k3 = st.columns(3)
+    col_k1.markdown(
+        f'<div class="kpi-card"><div class="kpi-title">Fatturato Gen-Lug 2026</div><div class="kpi-value">€ {tot_f_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(tot_f_26/7)*12:,.2f}</div></div>',
+        unsafe_allow_html=True,
+    )
+    col_k2.markdown(
+        f'<div class="kpi-card"><div class="kpi-title">Costi Personale Gen-Lug 2026</div><div class="kpi-value" style="color:#e11d48;">€ {tot_c_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(tot_c_26/7)*12:,.2f}</div></div>',
+        unsafe_allow_html=True,
+    )
+    col_k3.markdown(
+        f'<div class="kpi-card"><div class="kpi-title">Margine Operativo Gen-Lug 2026</div><div class="kpi-value" style="color:#16a34a;">€ {mol_26:,.2f}</div><div class="kpi-subtitle">Previsionale 12M: € {(mol_26/7)*12:,.2f}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+    t1, t2, t3, t4, t5, t6, t7 = st.tabs([
+        "📊 Confronto Fatturato",
         "👥 Costi Personale",
-        "⏱️ Ore Dirette/Indirette",
+        "⏱️ Ore Dirette",
+        "⚙️ Ore Indirette",
         "💶 Media Oraria",
+        "📋 Dettaglio Dipendenti",
+        "🍕 Analisi Clienti",
     ])
 
     with t1:
+        st.subheader("📊 Confronto Fatturato Mensile Generale")
+        fig_f = px.bar(
+            df_fat,
+            x="Mese",
+            y=["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"],
+            barmode="group",
+            title="Andamento Fatturato Mensile (€)",
+            color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
+            text_auto=",.0f",
+        )
+        fig_f.update_traces(textposition="outside")
+        fig_f.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
+
+    with t2:
+        st.subheader("👥 Costi Personale Mensili")
+        fig_c = px.bar(
+            df_costi,
+            x="Mese",
+            y=["Costi 2026", "Costi 2025", "Costi 2024"],
+            barmode="group",
+            title="Andamento Costi Personale (€)",
+            color_discrete_sequence=["#e11d48", "#f43f5e", "#fda4af"],
+            text_auto=",.0f",
+        )
+        fig_c.update_traces(textposition="outside")
+        fig_c.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
+
+    with t3:
+        st.subheader("⏱️ Ore Dirette Lavorate")
+        fig_dir = px.bar(
+            df_ore_dirette,
+            x="Mese",
+            y=["Ore Dirette 2026", "Ore Dirette 2025"],
+            barmode="group",
+            title="Ore Dirette (h)",
+            color_discrete_sequence=["#16a34a", "#86efac"],
+            text_auto=",.1f",
+        )
+        fig_dir.update_traces(textposition="outside")
+        fig_dir.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(
+            layout_grafico_chiaro(fig_dir), use_container_width=True
+        )
+
+    with t4:
+        st.subheader("⚙️ Ore Indirette (Gestione/Struttura)")
+        fig_ind = px.bar(
+            df_ore_indirette,
+            x="Mese",
+            y=["Ore Indirette 2026", "Ore Indirette 2025"],
+            barmode="group",
+            title="Ore Indirette (h)",
+            color_discrete_sequence=["#d97706", "#fde047"],
+            text_auto=",.1f",
+        )
+        fig_ind.update_traces(textposition="outside")
+        fig_ind.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(
+            layout_grafico_chiaro(fig_ind), use_container_width=True
+        )
+
+    with t5:
+        st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
+        fig_media = px.bar(
+            df_media_oraria,
+            x="Mese",
+            y=["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"],
+            barmode="group",
+            title="Media Oraria (€/h)",
+            color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
+            text_auto=",.2f",
+        )
+        fig_media.update_traces(textposition="outside")
+        fig_media.update_layout(
+            legend_itemclick=False, legend_itemdoubleclick=False
+        )
+        st.plotly_chart(
+            layout_grafico_chiaro(fig_media), use_container_width=True
+        )
+
+    with t6:
+        st.subheader("📋 Totale Parziale 2026 - Costi e Ore Personale")
+        st.dataframe(
+            df_riassunto_2026.style.format({
+                "COSTO TOT": "€ {:,.2f}",
+                "ORE TOT": "{:,.1f}",
+                "COSTO ORARIO": "€ {:,.2f}",
+            }),
+            use_container_width=True,
+            height=400,
+        )
+
+        st.markdown("---")
+        st.subheader("🔎 Dettaglio Mensile Dipendente")
+        dip_scelto = st.selectbox(
+            "Seleziona Dipendente:", list(dati_dipendenti_mensili.keys())
+        )
+
+        df_dip = pd.DataFrame({
+            "Mese": mesi,
+            "Costo Totale (€)": dati_dipendenti_mensili[dip_scelto]["Costo"],
+            "Ore Totali": dati_dipendenti_mensili[dip_scelto]["Ore"],
+        })
+        df_dip["Costo Orario (€/h)"] = (
+            df_dip["Costo Totale (€)"] / df_dip["Ore Totali"]
+        ).fillna(0).round(2)
+
+        st.dataframe(
+            df_dip.style.format({
+                "Costo Totale (€)": "€ {:,.2f}",
+                "Ore Totali": "{:,.1f} h",
+                "Costo Orario (€/h)": "€ {:,.2f}",
+            }),
+            use_container_width=True,
+        )
+
+        fig_dip = px.bar(
+            df_dip[df_dip["Ore Totali"] > 0],
+            x="Mese",
+            y="Costo Totale (€)",
+            text_auto=",.0f",
+            color_discrete_sequence=["#2563eb"],
+            title=f"Andamento Mensile Costi - {dip_scelto}",
+        )
+        fig_dip.update_traces(textposition="outside")
+        st.plotly_chart(
+            layout_grafico_chiaro(fig_dip), use_container_width=True
+        )
+
+    with t7:
         st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Lug 2026)")
 
         col_p1, col_p2 = st.columns([1.1, 1])
@@ -716,7 +1031,6 @@ if sezione == "📈 Dashboard Grafica":
                 color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
                 text_auto=",.0f",
             )
-            # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
             fig_cli_m.update_traces(textposition="outside")
             fig_cli_m.update_layout(
                 legend_itemclick=False, legend_itemdoubleclick=False
@@ -724,101 +1038,6 @@ if sezione == "📈 Dashboard Grafica":
             st.plotly_chart(
                 layout_grafico_chiaro(fig_cli_m), use_container_width=True
             )
-
-    with t2:
-        st.subheader("📊 Confronto Fatturato Mensile Generale")
-        fig_f = px.bar(
-            df_fat,
-            x="Mese",
-            y=["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"],
-            barmode="group",
-            title="Andamento Fatturato Mensile (€)",
-            color_discrete_sequence=["#2563eb", "#60a5fa", "#93c5fd"],
-            text_auto=",.0f",
-        )
-        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
-        fig_f.update_traces(textposition="outside")
-        fig_f.update_layout(
-            legend_itemclick=False, legend_itemdoubleclick=False
-        )
-        st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
-
-    with t3:
-        st.subheader("👥 Costi Personale Mensili")
-        fig_c = px.bar(
-            df_costi,
-            x="Mese",
-            y=["Costi 2026", "Costi 2025", "Costi 2024"],
-            barmode="group",
-            title="Andamento Costi Personale (€)",
-            color_discrete_sequence=["#e11d48", "#f43f5e", "#fda4af"],
-            text_auto=",.0f",
-        )
-        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
-        fig_c.update_traces(textposition="outside")
-        fig_c.update_layout(
-            legend_itemclick=False, legend_itemdoubleclick=False
-        )
-        st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
-
-    with t4:
-        st.subheader("⏱️ Ore Dirette e Indirette")
-        col_o1, col_o2 = st.columns(2)
-        with col_o1:
-            fig_dir = px.bar(
-                df_ore_dirette,
-                x="Mese",
-                y=["Ore Dirette 2026", "Ore Dirette 2025"],
-                barmode="group",
-                title="Ore Dirette Lavorate (h)",
-                color_discrete_sequence=["#16a34a", "#86efac"],
-                text_auto=",.1f",
-            )
-            fig_dir.update_traces(textposition="outside")
-            fig_dir.update_layout(
-                legend_itemclick=False, legend_itemdoubleclick=False
-            )
-            st.plotly_chart(
-                layout_grafico_chiaro(fig_dir), use_container_width=True
-            )
-
-        with col_o2:
-            fig_ind = px.bar(
-                df_ore_indirette,
-                x="Mese",
-                y=["Ore Indirette 2026", "Ore Indirette 2025"],
-                barmode="group",
-                title="Ore Indirette (h)",
-                color_discrete_sequence=["#d97706", "#fde047"],
-                text_auto=",.1f",
-            )
-            fig_ind.update_traces(textposition="outside")
-            fig_ind.update_layout(
-                legend_itemclick=False, legend_itemdoubleclick=False
-            )
-            st.plotly_chart(
-                layout_grafico_chiaro(fig_ind), use_container_width=True
-            )
-
-    with t5:
-        st.subheader("💶 Media Oraria (Fatturato / Ore Totali)")
-        fig_media = px.bar(
-            df_media_oraria,
-            x="Mese",
-            y=["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"],
-            barmode="group",
-            title="Media Oraria (€/h)",
-            color_discrete_sequence=["#9333ea", "#c084fc", "#e9d5ff"],
-            text_auto=",.2f",
-        )
-        # VALORI SCRITTI SEMPRE SOPRA LE COLONNE
-        fig_media.update_traces(textposition="outside")
-        fig_media.update_layout(
-            legend_itemclick=False, legend_itemdoubleclick=False
-        )
-        st.plotly_chart(
-            layout_grafico_chiaro(fig_media), use_container_width=True
-        )
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     st.subheader("🤖 Assistente IA Gestionale")
