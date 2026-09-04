@@ -12,25 +12,28 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- STILE TEMA CHIARO E PULITO ---
+# --- STILE TEMA CHIARO, PULITO E RESPONSIVE MOBILE ---
 st.markdown(
     """
 <style>
+    /* Sfondo Globale e Font */
     .stApp {
         background-color: #f8fafc;
         color: #0f172a;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
+    
+    /* Card KPI in stile Light */
     .kpi-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 15px;
+        padding: 16px;
+        margin-bottom: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
     .kpi-title {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -38,33 +41,59 @@ st.markdown(
         margin-bottom: 4px;
     }
     .kpi-value {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
         font-weight: 800;
         color: #0f172a;
     }
     .kpi-subtitle {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         color: #475569;
-        margin-top: 6px;
+        margin-top: 4px;
     }
+
+    /* Stile Tab con scrolling orizzontale su schermi stretti */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
+        gap: 4px;
         background-color: #f1f5f9;
-        padding: 6px;
+        padding: 4px;
         border-radius: 10px;
         border: 1px solid #cbd5e1;
+        overflow-x: auto;
+        white-space: nowrap;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 40px;
+        height: 38px;
         border-radius: 6px;
         color: #475569;
         font-weight: 600;
         border: none;
-        padding: 0 14px;
+        padding: 0 12px;
+        font-size: 0.85rem;
     }
     .stTabs [aria-selected="true"] {
         background-color: #2563eb !important;
         color: #ffffff !important;
+    }
+
+    /* OTTIMIZZAZIONE SPECIFICA PER DISPOSITIVI MOBILI (SMARTPHONE E TABLET) */
+    @media (max-width: 768px) {
+        .kpi-card {
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .kpi-title {
+            font-size: 0.7rem;
+        }
+        .kpi-value {
+            font-size: 1.2rem;
+        }
+        .kpi-subtitle {
+            font-size: 0.7rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            padding: 0 8px;
+            font-size: 0.75rem;
+        }
     }
 </style>
 """,
@@ -77,7 +106,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
     st.markdown(
-        "<div style='text-align: center; margin-top: 50px;'><h1 style='color:#0f172a;'>🔒 Accesso Riservato</h1><p style='color: #64748b;'>Sintec S.r.l. - Controllo di Gestione</p></div>",
+        "<div style='text-align: center; margin-top: 30px;'><h1 style='color:#0f172a; font-size: 1.8rem;'>🔒 Accesso Riservato</h1><p style='color: #64748b;'>Sintec S.r.l. - Controllo di Gestione</p></div>",
         unsafe_allow_html=True,
     )
     col_l1, col_l2, col_l3 = st.columns([1, 1.2, 1])
@@ -98,7 +127,7 @@ if not st.session_state["authenticated"]:
                 st.error("Credenziali non valide")
     st.stop()
 
-# --- DATI GENERALI AMMINISTRATIVI ---
+# --- DATI GENERALI AMMINISTRATIVI (CONSOLIDATI A LUGLIO 2026) ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
@@ -149,12 +178,33 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI DETTAGLIATI CLIENTI ---
+# --- DATI DETTAGLIATI CLIENTI (INTEGRAZIONE SACMI / ACMI E TOTALE ALLINEATO) ---
 totale_reale_gen_lug = df_fat["Fatturato 2026"].sum()
 
 df_clienti_principali = pd.DataFrame({
-    "Cliente": ["WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL", "SILVI S.R.L.", "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA", "CATTANI SPA", "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", "PRISMA S.P.A.", "I.E. PARK SRL"],
-    "Fatturato 2026 (Gen-Lug) (€)": [136922.00, 102256.14, 33484.00, 25690.50, 18740.00, 17577.00, 15372.00, 12218.00, 9133.00, 5238.00, 5175.00, 4603.50, 3273.00, 2640.00, 2227.50, 1860.00],
+    "Cliente": [
+        "WITTUR SPA", 
+        "SIDEL S.P.A.", 
+        "ACMI LABELLING SRL (ex SACMI)", 
+        "SILVI S.R.L.", 
+        "GAMMA MECCANICA S.p.A", 
+        "ACMI BEVERAGE SPA (ex SACMI)", 
+        "CATTANI SPA", 
+        "GEA MECHANICAL EQUIPMENT", 
+        "CALF SPA", 
+        "REGGIANA RIDUTTORI SRL", 
+        "CSF INOX S.P.A.", 
+        "DIECI SRL", 
+        "ERRESSE Costmec", 
+        "JOHN BEAN TECHNOLOGIES", 
+        "PRISMA S.P.A.", 
+        "I.E. PARK SRL"
+    ],
+    "Fatturato 2026 (Gen-Lug) (€)": [
+        136922.00, 102256.14, 33484.00, 25690.50, 18740.00, 
+        17577.00, 15372.00, 12218.00, 9133.00, 5238.00, 
+        5175.00, 4603.50, 3273.00, 2640.00, 2227.50, 1860.00
+    ],
     "Num Fatture": [19, 29, 6, 6, 6, 2, 7, 5, 3, 1, 3, 2, 1, 2, 2, 1],
 })
 
@@ -172,6 +222,8 @@ df_clienti_2026 = pd.concat([df_clienti_principali, df_altri], ignore_index=True
 dati_clienti_mensili = {
     "WITTUR SPA": {"2026": [19638.0, 19653.0, 27121.5, 20090.5, 18483.0, 31936.0, 0.0], "2025": [15561.0, 13911.5, 18000.0, 16500.0, 17800.0, 18200.0, 19500.0], "2024": [12000.0, 14000.0, 17547.0, 16000.0, 17804.5, 16500.0, 23948.5]},
     "SIDEL S.P.A.": {"2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 5123.04], "2025": [9078.0, 13487.31, 11200.0, 12500.0, 14000.0, 11800.0, 12900.0], "2024": [11000.0, 12500.0, 13000.0, 10500.0, 11800.0, 12200.0, 14000.0]},
+    "ACMI BEVERAGE SPA (ex SACMI)": {"2026": [6784.0, 10195.0, 10793.0, 6524.0, 6100.0, 0.0, 0.0], "2025": [11262.0, 9880.5, 9429.5, 11115.0, 10972.0, 14210.0, 9192.0], "2024": [8140.0, 10092.0, 6986.0, 7968.0, 14381.0, 16875.0, 14487.0]},
+    "ACMI LABELLING SRL (ex SACMI)": {"2026": [3284.0, 6134.0, 3624.0, 4770.0, 9586.0, 0.0, 6386.0], "2025": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2024": [5465.0, 5248.0, 4929.0, 4248.0, 0.0, 0.0, 0.0]},
     "CATTANI SPA": {"2026": [1918.0, 3290.0, 2674.0, 2996.0, 546.0, 1890.0, 2058.0], "2025": [1400.0, 1386.0, 1330.0, 2156.0, 1694.0, 2618.0, 3234.0], "2024": [1512.0, 1148.0, 1946.0, 1428.0, 1848.0, 1022.0, 2170.0]},
     "GAMMA MECCANICA S.p.A": {"2026": [1472.0, 480.0, 4868.0, 2832.0, 3264.0, 0.0, 2912.0], "2025": [0.0, 2070.0, 4650.0, 1920.0, 0.0, 2280.0, 0.0], "2024": [0.0, 0.0, 0.0, 2430.0, 4800.0, 2040.0, 0.0]},
     "GEA MECHANICAL EQUIPMENT": {"2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0], "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0]},
@@ -183,22 +235,23 @@ dati_clienti_mensili = {
 if "cliente_selezionato" not in st.session_state:
     st.session_state["cliente_selezionato"] = "WITTUR SPA"
 
-# LAYOUT ANTI-SOVRAPPOSIZIONE MIGLIORATO
+# FUNZIONE LAYOUT DIVERSIFICATA E OTTIMIZZATA PER MOBILE
 def layout_grafico_chiaro(fig):
     fig.update_layout(
         template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", color="#0f172a", size=11),
-        margin=dict(l=20, r=20, t=60, b=20),
+        font=dict(family="Inter, sans-serif", color="#0f172a", size=10),
+        margin=dict(l=10, r=10, t=50, b=30),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.05,
-            xanchor="right",
-            x=1,
+            y=-0.25,  # Spostata in basso per evitare di coprire il grafico su mobile
+            xanchor="center",
+            x=0.5,
             bgcolor="rgba(0,0,0,0)"
-        )
+        ),
+        xaxis=dict(tickangle=-45)  # Inclinazione etichette mesi/categorie per evitare sovrapposizioni su schermi stretti
     )
     return fig
 
@@ -251,8 +304,8 @@ if sezione == "📈 Dashboard Grafica":
             text_auto=",.0f"
         )
         max_val = df_fat[["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"]].max().max()
-        fig_f.update_traces(textposition="outside", textfont_size=9)
-        fig_f.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_f.update_traces(textposition="outside", textfont_size=8)
+        fig_f.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_f), use_container_width=True)
 
     with t2:
@@ -267,8 +320,8 @@ if sezione == "📈 Dashboard Grafica":
             text_auto=",.0f"
         )
         max_val = df_costi[["Costi 2026", "Costi 2025", "Costi 2024"]].max().max()
-        fig_c.update_traces(textposition="outside", textfont_size=9)
-        fig_c.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_c.update_traces(textposition="outside", textfont_size=8)
+        fig_c.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_c), use_container_width=True)
 
     with t3:
@@ -283,8 +336,8 @@ if sezione == "📈 Dashboard Grafica":
             text_auto=",.0f"
         )
         max_val = df_ore_dirette[["Ore Dirette 2026", "Ore Dirette 2025"]].max().max()
-        fig_dir.update_traces(textposition="outside", textfont_size=9)
-        fig_dir.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_dir.update_traces(textposition="outside", textfont_size=8)
+        fig_dir.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_dir), use_container_width=True)
 
     with t4:
@@ -299,8 +352,8 @@ if sezione == "📈 Dashboard Grafica":
             text_auto=",.0f"
         )
         max_val = df_ore_indirette[["Ore Indirette 2026", "Ore Indirette 2025"]].max().max()
-        fig_ind.update_traces(textposition="outside", textfont_size=9)
-        fig_ind.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_ind.update_traces(textposition="outside", textfont_size=8)
+        fig_ind.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_ind), use_container_width=True)
 
     with t5:
@@ -315,8 +368,8 @@ if sezione == "📈 Dashboard Grafica":
             text_auto=",.1f"
         )
         max_val = df_media_oraria[["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"]].max().max()
-        fig_media.update_traces(textposition="outside", textfont_size=9)
-        fig_media.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_media.update_traces(textposition="outside", textfont_size=8)
+        fig_media.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_media), use_container_width=True)
 
     with t6:
@@ -328,7 +381,7 @@ if sezione == "📈 Dashboard Grafica":
                 "COSTO ORARIO": "€ {:,.2f}"
             }),
             use_container_width=True,
-            height=400
+            height=350
         )
 
         st.markdown("---")
@@ -360,8 +413,8 @@ if sezione == "📈 Dashboard Grafica":
             title=f"Andamento Mensile Costi - {dip_scelto}"
         )
         max_val = df_dip["Costo Totale (€)"].max()
-        fig_dip.update_traces(textposition="outside", textfont_size=9)
-        fig_dip.update_layout(yaxis=dict(range=[0, max_val * 1.25]))
+        fig_dip.update_traces(textposition="outside", textfont_size=8)
+        fig_dip.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
         st.plotly_chart(layout_grafico_chiaro(fig_dip), use_container_width=True)
 
     with t7:
@@ -419,7 +472,7 @@ if sezione == "📈 Dashboard Grafica":
                     "% Quota": "{:.2f} %"
                 }),
                 use_container_width=True,
-                height=380
+                height=350
             )
 
         st.markdown("---")
@@ -487,13 +540,21 @@ if sezione == "📈 Dashboard Grafica":
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     st.subheader("🤖 Assistente IA Gestionale")
-    domanda = st.text_input("Chiedi all'Assistente sui dati o sui clienti (es. Wittur, Sidel, etc.):")
+    domanda = st.text_input("Chiedi all'Assistente sui dati o sui clienti (es. Wittur, Sidel, ACMI/SACMI, etc.):")
     if domanda and "OPENAI_API_KEY" in st.secrets:
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Sei l'assistente per il controllo di gestione di Sintec S.r.l."},
+                {
+                    "role": "system",
+                    "content": (
+                        "Sei l'assistente per il controllo di gestione di Sintec S.r.l. "
+                        "Nota importante sui dati: la ragione sociale 'ACMI' (es. ACMI BEVERAGE SPA, ACMI LABELLING SRL) "
+                        "negli storici contabili precedenti era registrata come 'SACMI' (SACMI BEVERAGE SPA, SACMI VERONA S.P.A.). "
+                        "Considerale come la stessa entità cliente quando analizzi o rispondi."
+                    )
+                },
                 {"role": "user", "content": domanda}
             ]
         )
