@@ -129,34 +129,7 @@ def evidenzia_totale(row, col_chiave="Mese"):
         return ['background-color: #fef08a; font-weight: bold; color: #854d0e'] * len(row)
     return [''] * len(row)
 
-# --- LOGIN ---
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-
-if not st.session_state["authenticated"]:
-    st.markdown(
-        "<div style='text-align: center; margin-top: 50px;'><h1 style='color:#111; font-size: 2rem;'>🔒 <span style='color:#d9232a;'>SinTec</span> Accesso Riservato</h1><p style='color: #666;'>Controllo di Gestione Aziendale</p></div>",
-        unsafe_allow_html=True,
-    )
-    col_l1, col_l2, col_l3 = st.columns([1, 1.2, 1])
-    with col_l2:
-        with st.form("login_form"):
-            username = st.text_input("Username", key="username")
-            password = st.text_input("Password", type="password", key="password")
-            submit_button = st.form_submit_button(
-                "🚀 Accedi alla Dashboard", use_container_width=True
-            )
-
-        if submit_button:
-            if username == "sintec" and password == "Sintec2026!":
-                st.session_state["authenticated"] = True
-                st.success("Accesso effettuato con successo!")
-                st.rerun()
-            else:
-                st.error("Credenziali non valide")
-    st.stop()
-
-# --- DATI GENERALI (AGGIORNATI CON FILE UFFICIALE SETTEMBRE 2026 - 8 MESI YTD) ---
+# --- DATI GENERALI ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 35609.42, 0, 0, 0, 0],
@@ -164,7 +137,6 @@ df_fat = pd.DataFrame({
     "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
 })
 
-# Costi dipendenti 2026 aggiornati da file a-TABELLA RIASSUNTIVA COSTI DIPEND 26.pdf (Gen-Ago 2026)
 df_costi = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
     "Costi 2026": [34104.88, 40913.02, 39960.05, 39848.93, 41854.30, 38761.35, 34074.31, 31320.96, 0, 0, 0, 0],
@@ -191,7 +163,6 @@ df_media_oraria = pd.DataFrame({
     "Media Oraria 2024": [25.98, 27.17, 30.29, 27.78, 28.50, 26.28, 30.74, 27.24, 29.82, 31.52, 27.52, 30.05],
 })
 
-# --- DATI DIPENDENTI 2026 (AGGIORNATI DA FILE RECENTE - AGOSTO 2026 INCLUSO) ---
 df_riassunto_2026 = pd.DataFrame({
     "COGNOME": ["D'ALSAZIA", "BASSISSI", "CASELLI", "LANZI", "GUION", "CAMPANINI", "JOHNSON", "RASENTI", "MAGNO", "SCANO", "PETRO'", "GRANDE", "DEJVI (luglio-sett.)", "TOTALE (GEN-AGO)"],
     "COSTO TOT": [29039.16, 18010.84, 28854.34, 24536.91, 12606.85, 27807.68, 22897.13, 38531.92, 26985.89, 26254.66, 21384.32, 21285.24, 2642.86, 300837.80],
@@ -217,7 +188,7 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI DETTAGLIATI CLIENTI ---
+# --- DATI CLIENTI ---
 totale_reale_gen_ago = df_fat["Fatturato 2026"].head(8).sum()
 
 df_clienti_principali = pd.DataFrame({
@@ -304,16 +275,16 @@ st.markdown(
 
 if sezione == "📈 Dashboard Grafica":
 
-    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI (SULLE 8 MENSILITA' AGOSTO INCLUSO)
+    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
     tot_f_26 = df_fat["Fatturato 2026"].head(8).sum()
     tot_f_25 = df_fat["Fatturato 2025"].head(8).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
     prev_f_26 = (tot_f_26 / 8) * 12
     delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
 
-    tot_c_26 = df_costi["Costi 2026"].head(8).sum() # € 300.837,80
-    tot_c_25 = df_costi["Costi 2025"].head(8).sum() # € 295.004,36
-    tot_c_25_tot = df_costi["Costi 2025"].sum()       # € 453.912,92
+    tot_c_26 = df_costi["Costi 2026"].head(8).sum()
+    tot_c_25 = df_costi["Costi 2025"].head(8).sum()
+    tot_c_25_tot = df_costi["Costi 2025"].sum()
     prev_c_26 = (tot_c_26 / 8) * 12
     delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
 
@@ -396,7 +367,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_fat[["Fatturato 2026", "Fatturato 2025", "Fatturato 2024"]].max().max()
         fig_f.update_traces(textposition="outside", textfont_size=8)
         fig_f.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_f), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_f), use_container_width=True, key="chart_fatturato_main")
 
         st.markdown("#### 📋 Tabella Dati Fatturato (€)")
         df_fat_tot = pd.concat([
@@ -451,7 +422,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_costi[["Costi 2026", "Costi 2025", "Costi 2024"]].max().max()
         fig_c.update_traces(textposition="outside", textfont_size=8)
         fig_c.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_c), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_c), use_container_width=True, key="chart_costi_main")
 
         st.markdown("#### 📋 Tabella Dati Costi Personale (€)")
         df_costi_tot = pd.concat([
@@ -536,7 +507,7 @@ if sezione == "📈 Dashboard Grafica":
             max_val = df_dip_t2["Costo Totale (€)"].max()
             fig_dip2.update_traces(textposition="outside", textfont_size=8)
             fig_dip2.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-            st.plotly_chart(layout_grafico_sintec(fig_dip2), use_container_width=True)
+            st.plotly_chart(layout_grafico_sintec(fig_dip2), use_container_width=True, key="chart_dip_tab2")
 
     # TAB 3: ORE DIRETTE
     with t3:
@@ -563,7 +534,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_ore_dirette[["Ore Dirette 2026", "Ore Dirette 2025"]].max().max()
         fig_dir.update_traces(textposition="outside", textfont_size=8)
         fig_dir.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_dir), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_dir), use_container_width=True, key="chart_ore_dirette_main")
 
         st.markdown("#### 📋 Tabella Dati Ore Dirette (h)")
         df_ore_dir_tot = pd.concat([
@@ -613,7 +584,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_ore_indirette[["Ore Indirette 2026", "Ore Indirette 2025"]].max().max()
         fig_ind.update_traces(textposition="outside", textfont_size=8)
         fig_ind.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_ind), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_ind), use_container_width=True, key="chart_ore_indirette_main")
 
         st.markdown("#### 📋 Tabella Dati Ore Indirette (h)")
         df_ore_ind_tot = pd.concat([
@@ -663,7 +634,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_media_oraria[["Media Oraria 2026", "Media Oraria 2025", "Media Oraria 2024"]].max().max()
         fig_media.update_traces(textposition="outside", textfont_size=8)
         fig_media.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_media), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_media), use_container_width=True, key="chart_media_oraria_main")
 
         st.markdown("#### 📋 Tabella Dati Media Oraria (€/h)")
         df_media_tot = pd.concat([
@@ -731,7 +702,7 @@ if sezione == "📈 Dashboard Grafica":
         max_val = df_dip["Costo Totale (€)"].max()
         fig_dip.update_traces(textposition="outside", textfont_size=8)
         fig_dip.update_layout(yaxis=dict(range=[0, max_val * 1.30]))
-        st.plotly_chart(layout_grafico_sintec(fig_dip), use_container_width=True)
+        st.plotly_chart(layout_grafico_sintec(fig_dip), use_container_width=True, key="chart_dip_tab6")
 
         st.markdown(f"#### 📋 Tabella Dati Mensili - {dip_scelto}")
         df_dip_tot = pd.concat([
@@ -780,7 +751,8 @@ if sezione == "📈 Dashboard Grafica":
                 layout_grafico_sintec(fig_pie),
                 use_container_width=True,
                 on_select="rerun",
-                selection_mode="points"
+                selection_mode="points",
+                key="chart_clienti_pie"
             )
 
             if selected_pie and "selection" in selected_pie:
@@ -883,7 +855,7 @@ if sezione == "📈 Dashboard Grafica":
                 title=f"Confronto Storico Mensile: {cli_scelto}",
                 color_discrete_sequence=["#d9232a", "#1e1e1e", "#999999"]
             )
-            st.plotly_chart(layout_grafico_sintec(fig_cli_m), use_container_width=True)
+            st.plotly_chart(layout_grafico_sintec(fig_cli_m), use_container_width=True, key="chart_cliente_mensile")
 
 elif sezione == "🤖 Assistente IA (Testo e Voce)":
     domanda = st.text_input("Chiedi all'Assistente sui dati o sui clienti (es. Wittur, Sidel, ACMI/SACMI, etc.):")
