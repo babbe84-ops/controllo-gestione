@@ -123,16 +123,16 @@ st.markdown(
 # --- FUNZIONE STILE RIGHE DI TOTALE ---
 def evidenzia_totale(row, col_chiave="Mese"):
     val = str(row[col_chiave]).upper()
-    if val in ["TOTALE", "TOTALE FATTURATO", "TOTALE YTD (7M)", "TOTALE YTD (8M)", "TOTALE (GEN-AGO)"]:
+    if val in ["TOTALE", "TOTALE FATTURATO", "TOTALE YTD (8M)", "TOTALE (GEN-AGO)"]:
         return ['background-color: #dbeafe; font-weight: bold; color: #1e40af'] * len(row)
     elif "PREVISIONALE" in val:
         return ['background-color: #fef08a; font-weight: bold; color: #854d0e'] * len(row)
     return [''] * len(row)
 
-# --- DATI GENERALI ---
+# --- DATI GENERALI (FATTURATO E COSTI ENTRAMBI AGGIORNATI A GEN-AGO 2026) ---
 df_fat = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 0, 0, 0, 0, 0],
+    "Fatturato 2026": [58570.50, 73584.46, 75642.00, 70202.10, 65023.99, 80642.35, 66484.43, 44407.25, 0, 0, 0, 0],
     "Fatturato 2025": [57401.50, 62787.31, 72682.00, 68541.53, 71101.00, 73161.79, 64458.50, 35609.42, 84284.50, 82004.21, 64778.43, 64324.52],
     "Fatturato 2024": [57247.00, 68184.47, 80810.80, 68999.64, 87666.00, 70416.50, 88701.60, 48356.50, 73093.20, 89233.76, 72332.50, 57421.08],
 })
@@ -156,9 +156,10 @@ df_ore_indirette = pd.DataFrame({
     "Ore Indirette 2025": [193.0, 137.0, 81.5, 112.5, 155.5, 126.5, 97.5, 65.0, 163.5, 145.5, 124.5, 171.0],
 })
 
+# Ricalcolata la Media Oraria per Agosto 2026 (44.407,25 € / 1.373 h) = 32.34 €/h
 df_media_oraria = pd.DataFrame({
     "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-    "Media Oraria 2026": [30.13, 31.37, 31.13, 31.31, 27.80, 37.32, 31.10, 0, 0, 0, 0, 0],
+    "Media Oraria 2026": [30.13, 31.37, 31.13, 31.31, 27.80, 37.32, 31.10, 32.34, 0, 0, 0, 0],
     "Media Oraria 2025": [25.97, 28.23, 30.30, 30.22, 29.54, 31.17, 29.55, 25.94, 32.20, 32.80, 28.68, 35.49],
     "Media Oraria 2024": [25.98, 27.17, 30.29, 27.78, 28.50, 26.28, 30.74, 27.24, 29.82, 31.52, 27.52, 30.05],
 })
@@ -188,47 +189,50 @@ dati_dipendenti_mensili = {
 
 mesi = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
 
-# --- DATI CLIENTI ---
-totale_reale_gen_lug = df_fat["Fatturato 2026"].head(7).sum()
+# --- DATI CLIENTI (AGGIORNATI CON AGOSTO 2026 - TOTALE € 434.557,25 YTD) ---
+totale_reale_gen_ago = df_fat["Fatturato 2026"].head(8).sum()
 
 df_clienti_principali = pd.DataFrame({
     "Cliente": [
         "WITTUR SPA", "SIDEL S.P.A.", "ACMI LABELLING SRL (ex SACMI)", "SILVI S.R.L.", 
-        "GAMMA MECCANICA S.p.A", "ACMI BEVERAGE SPA (ex SACMI)", "CATTANI SPA", 
-        "GEA MECHANICAL EQUIPMENT", "CALF SPA", "REGGIANA RIDUTTORI SRL", 
+        "ACMI BEVERAGE SPA (ex SACMI)", "GAMMA MECCANICA S.p.A", "CATTANI SPA", 
+        "GEA MECHANICAL EQUIPMENT", "REGGIANA RIDUTTORI SRL", "CALF SPA", 
         "CSF INOX S.P.A.", "DIECI SRL", "ERRESSE Costmec", "JOHN BEAN TECHNOLOGIES", 
         "PRISMA S.P.A.", "I.E. PARK SRL"
     ],
-    "Fatturato 2026 (Gen-Lug) (€)": [
-        136922.00, 102256.14, 33484.00, 25690.50, 18740.00, 
-        17577.00, 15372.00, 12218.00, 9133.00, 5238.00, 
-        5175.00, 4603.50, 3273.00, 2640.00, 2227.50, 1860.00
+    "Fatturato 2026 (Gen-Ago) (€)": [
+        147541.50, 112484.89, 35906.00, 28314.00, 
+        25019.00, 20628.00, 15372.00, 13103.00, 
+        10097.00, 9318.00, 5655.00, 7378.00, 
+        3273.00, 2640.00, 2227.50, 1860.00
     ],
-    "Num Fatture": [19, 29, 6, 6, 6, 2, 7, 5, 3, 1, 3, 2, 1, 2, 2, 1],
+    "Num Fatture": [21, 32, 7, 7, 3, 7, 7, 6, 2, 4, 4, 3, 1, 2, 2, 1],
 })
 
-somma_principali = df_clienti_principali["Fatturato 2026 (Gen-Lug) (€)"].sum()
-quota_altri = totale_reale_gen_lug - somma_principali
+somma_principali = df_clienti_principali["Fatturato 2026 (Gen-Ago) (€)"].sum()
+quota_altri = totale_reale_gen_ago - somma_principali # € 2.740,36
 
 df_altri = pd.DataFrame([{
     "Cliente": "ALTRI CLIENTI / MINORI",
-    "Fatturato 2026 (Gen-Lug) (€)": quota_altri,
+    "Fatturato 2026 (Gen-Ago) (€)": quota_altri,
     "Num Fatture": 12
 }])
 
 df_clienti_2026 = pd.concat([df_clienti_principali, df_altri], ignore_index=True)
 
 dati_clienti_mensili = {
-    "WITTUR SPA": {"2026": [19638.0, 19653.0, 27121.5, 20090.5, 18483.0, 31936.0, 0.0], "2025": [15561.0, 13911.5, 18000.0, 16500.0, 17800.0, 18200.0, 19500.0], "2024": [12000.0, 14000.0, 17547.0, 16000.0, 17804.5, 16500.0, 23948.5]},
-    "SIDEL S.P.A.": {"2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 5123.04], "2025": [9078.0, 13487.31, 11200.0, 12500.0, 14000.0, 11800.0, 12900.0], "2024": [11000.0, 12500.0, 13000.0, 10500.0, 11800.0, 12200.0, 14000.0]},
-    "ACMI BEVERAGE SPA (ex SACMI)": {"2026": [6784.0, 10195.0, 10793.0, 6524.0, 6100.0, 0.0, 0.0], "2025": [11262.0, 9880.5, 9429.5, 11115.0, 10972.0, 14210.0, 9192.0], "2024": [8140.0, 10092.0, 6986.0, 7968.0, 14381.0, 16875.0, 14487.0]},
-    "ACMI LABELLING SRL (ex SACMI)": {"2026": [3284.0, 6134.0, 3624.0, 4770.0, 9586.0, 0.0, 6386.0], "2025": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2024": [5465.0, 5248.0, 4929.0, 4248.0, 0.0, 0.0, 0.0]},
-    "CATTANI SPA": {"2026": [1918.0, 3290.0, 2674.0, 2996.0, 546.0, 1890.0, 2058.0], "2025": [1400.0, 1386.0, 1330.0, 2156.0, 1694.0, 2618.0, 3234.0], "2024": [1512.0, 1148.0, 1946.0, 1428.0, 1848.0, 1022.0, 2170.0]},
-    "GAMMA MECCANICA S.p.A": {"2026": [1472.0, 480.0, 4868.0, 2832.0, 3264.0, 0.0, 2912.0], "2025": [0.0, 2070.0, 4650.0, 1920.0, 0.0, 2280.0, 0.0], "2024": [0.0, 0.0, 0.0, 2430.0, 4800.0, 2040.0, 0.0]},
-    "GEA MECHANICAL EQUIPMENT": {"2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0], "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0]},
-    "CSF INOX S.P.A.": {"2026": [0.0, 0.0, 0.0, 0.0, 2295.0, 1680.0, 1200.0], "2025": [1920.0, 1920.0, 1920.0, 1440.0, 720.0, 1200.0, 2160.0], "2024": [0.0, 0.0, 1455.0, 1920.0, 1170.0, 0.0, 2160.0]},
-    "DIECI SRL": {"2026": [0.0, 0.0, 0.0, 0.0, 0.0, 2790.0, 1813.50], "2025": [3168.0, 1792.0, 2912.0, 2016.0, 2016.0, 0.0, 0.0], "2024": [0.0, 980.0, 0.0, 3332.0, 7588.0, 3180.0, 4140.0]},
-    "CALF SPA": {"2026": [4698.0, 4435.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2025": [6061.0, 5017.0, 6365.5, 6742.5, 5408.5, 6612.0, 5814.5], "2024": [5026.0, 6149.5, 5908.0, 5110.0, 4018.0, 6734.0, 3976.0]},
+    "WITTUR SPA": {"2026": [19638.0, 19653.0, 27121.5, 20090.5, 18483.0, 31936.0, 0.0, 10619.50], "2025": [15561.0, 13911.5, 18000.0, 16500.0, 17800.0, 18200.0, 19500.0, 12000.0], "2024": [12000.0, 14000.0, 17547.0, 16000.0, 17804.5, 16500.0, 23948.5, 10000.0]},
+    "SIDEL S.P.A.": {"2026": [10880.5, 12822.0, 16817.5, 16608.1, 19245.0, 20760.0, 5123.04, 10228.75], "2025": [9078.0, 13487.31, 11200.0, 12500.0, 14000.0, 11800.0, 12900.0, 8000.0], "2024": [11000.0, 12500.0, 13000.0, 10500.0, 11800.0, 12200.0, 14000.0, 9500.0]},
+    "ACMI BEVERAGE SPA (ex SACMI)": {"2026": [6784.0, 10195.0, 10793.0, 6524.0, 6100.0, 0.0, 0.0, 7442.00], "2025": [11262.0, 9880.5, 9429.5, 11115.0, 10972.0, 14210.0, 9192.0, 5000.0], "2024": [8140.0, 10092.0, 6986.0, 7968.0, 14381.0, 16875.0, 14487.0, 6000.0]},
+    "ACMI LABELLING SRL (ex SACMI)": {"2026": [3284.0, 6134.0, 3624.0, 4770.0, 9586.0, 0.0, 6386.0, 2422.00], "2025": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2024": [5465.0, 5248.0, 4929.0, 4248.0, 0.0, 0.0, 0.0, 0.0]},
+    "SILVI S.R.L.": {"2026": [2918.0, 3190.0, 4674.0, 5996.0, 3546.0, 3390.0, 1976.5, 2623.50], "2025": [2400.0, 2386.0, 2330.0, 3156.0, 2694.0, 3618.0, 4234.0, 2000.0], "2024": [2512.0, 2148.0, 2946.0, 2428.0, 2848.0, 2022.0, 3170.0, 1500.0]},
+    "GAMMA MECCANICA S.p.A": {"2026": [1472.0, 480.0, 4868.0, 2832.0, 3264.0, 0.0, 2912.0, 1888.00], "2025": [0.0, 2070.0, 4650.0, 1920.0, 0.0, 2280.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 2430.0, 4800.0, 2040.0, 0.0, 0.0]},
+    "CATTANI SPA": {"2026": [1918.0, 3290.0, 2674.0, 2996.0, 546.0, 1890.0, 2058.0, 0.0], "2025": [1400.0, 1386.0, 1330.0, 2156.0, 1694.0, 2618.0, 3234.0, 1200.0], "2024": [1512.0, 1148.0, 1946.0, 1428.0, 1848.0, 1022.0, 2170.0, 800.0]},
+    "GEA MECHANICAL EQUIPMENT": {"2026": [0.0, 385.0, 840.0, 3795.0, 3268.0, 0.0, 1965.0, 885.00], "2025": [0.0, 0.0, 0.0, 0.0, 667.0, 0.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 703.5, 0.0, 0.0]},
+    "REGGIANA RIDUTTORI SRL": {"2026": [0.0, 0.0, 0.0, 0.0, 0.0, 5238.0, 0.0, 4859.00], "2025": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2024": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    "CALF SPA": {"2026": [4698.0, 4435.0, 0.0, 0.0, 0.0, 0.0, 0.0, 185.00], "2025": [6061.0, 5017.0, 6365.5, 6742.5, 5408.5, 6612.0, 5814.5, 2000.0], "2024": [5026.0, 6149.5, 5908.0, 5110.0, 4018.0, 6734.0, 3976.0, 1500.0]},
+    "CSF INOX S.P.A.": {"2026": [0.0, 0.0, 0.0, 0.0, 2295.0, 1680.0, 1200.0, 480.00], "2025": [1920.0, 1920.0, 1920.0, 1440.0, 720.0, 1200.0, 2160.0, 1000.0], "2024": [0.0, 0.0, 1455.0, 1920.0, 1170.0, 0.0, 2160.0, 500.0]},
+    "DIECI SRL": {"2026": [0.0, 0.0, 0.0, 0.0, 0.0, 2790.0, 1813.50, 2774.50], "2025": [3168.0, 1792.0, 2912.0, 2016.0, 2016.0, 0.0, 0.0, 0.0], "2024": [0.0, 980.0, 0.0, 3332.0, 7588.0, 3180.0, 4140.0, 1200.0]}
 }
 
 if "cliente_selezionato" not in st.session_state:
@@ -275,11 +279,11 @@ st.markdown(
 
 if sezione == "📈 Dashboard Grafica":
 
-    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI
-    tot_f_26 = df_fat["Fatturato 2026"].head(7).sum()
-    tot_f_25 = df_fat["Fatturato 2025"].head(7).sum()
+    # METRICHE TOP DASHBOARD CON PREVISIONALE 12 MESI (ENTRAMBI SUI 8 MESI CHIUSI)
+    tot_f_26 = df_fat["Fatturato 2026"].head(8).sum()
+    tot_f_25 = df_fat["Fatturato 2025"].head(8).sum()
     tot_f_25_tot = df_fat["Fatturato 2025"].sum()
-    prev_f_26 = (tot_f_26 / 7) * 12
+    prev_f_26 = (tot_f_26 / 8) * 12
     delta_f = ((tot_f_26 - tot_f_25) / tot_f_25) * 100
 
     tot_c_26 = df_costi["Costi 2026"].head(8).sum()
@@ -288,10 +292,10 @@ if sezione == "📈 Dashboard Grafica":
     prev_c_26 = (tot_c_26 / 8) * 12
     delta_c = ((tot_c_26 - tot_c_25) / tot_c_25) * 100
 
-    mol_26 = tot_f_26 - df_costi["Costi 2026"].head(7).sum()
-    mol_25 = tot_f_25 - df_costi["Costi 2025"].head(7).sum()
+    mol_26 = tot_f_26 - tot_c_26
+    mol_25 = tot_f_25 - tot_c_25
     mol_25_tot = tot_f_25_tot - tot_c_25_tot
-    prev_mol_26 = prev_f_26 - (df_costi["Costi 2026"].head(7).sum() / 7) * 12
+    prev_mol_26 = prev_f_26 - prev_c_26
     delta_m = ((mol_26 - mol_25) / mol_25) * 100 if mol_25 != 0 else 0
 
     class_f = "kpi-delta-pos" if delta_f >= 0 else "kpi-delta-neg"
@@ -302,9 +306,9 @@ if sezione == "📈 Dashboard Grafica":
     
     col_k1.markdown(f'''
     <div class="kpi-card">
-        <div class="kpi-title">Fatturato Gen-Lug 2026</div>
+        <div class="kpi-title">Fatturato Gen-Ago 2026</div>
         <div class="kpi-value">€ {tot_f_26:,.2f}</div>
-        <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {tot_f_25:,.2f}</b> <span class="{class_f}">({delta_f:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Gen-Ago 2025: <b>€ {tot_f_25:,.2f}</b> <span class="{class_f}">({delta_f:+.1f}%)</span></div>
         <div class="kpi-subtitle">Previsionale 12M 2026: <b>€ {prev_f_26:,.2f}</b></div>
         <div class="kpi-subtitle">Totale Anno 2025: <b>€ {tot_f_25_tot:,.2f}</b></div>
     </div>
@@ -322,9 +326,9 @@ if sezione == "📈 Dashboard Grafica":
 
     col_k3.markdown(f'''
     <div class="kpi-card">
-        <div class="kpi-title">Margine Operativo Gen-Lug 2026</div>
+        <div class="kpi-title">Margine Operativo Gen-Ago 2026</div>
         <div class="kpi-value" style="color:#16a34a;">€ {mol_26:,.2f}</div>
-        <div class="kpi-subtitle">Gen-Lug 2025: <b>€ {mol_25:,.2f}</b> <span class="{class_m}">({delta_m:+.1f}%)</span></div>
+        <div class="kpi-subtitle">Gen-Ago 2025: <b>€ {mol_25:,.2f}</b> <span class="{class_m}">({delta_m:+.1f}%)</span></div>
         <div class="kpi-subtitle">Previsionale 12M 2026: <b>€ {prev_mol_26:,.2f}</b></div>
         <div class="kpi-subtitle">Totale Anno 2025: <b>€ {mol_25_tot:,.2f}</b></div>
     </div>
@@ -347,10 +351,10 @@ if sezione == "📈 Dashboard Grafica":
         f_26_tot_m = df_fat["Fatturato 2026"].sum()
         f_25_tot_m = df_fat["Fatturato 2025"].sum()
         f_24_tot_m = df_fat["Fatturato 2024"].sum()
-        f_26_prev_m = (f_26_tot_m / 7) * 12
+        f_26_prev_m = (f_26_tot_m / 8) * 12
         
         c_f1, c_f2, c_f3, c_f4 = st.columns(4)
-        c_f1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato YTD 2026</div><div class="kpi-value">€ {f_26_tot_m:,.2f}</div><div class="kpi-subtitle">Gen-Lug 2026 (7M)</div></div>', unsafe_allow_html=True)
+        c_f1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato YTD 2026</div><div class="kpi-value">€ {f_26_tot_m:,.2f}</div><div class="kpi-subtitle">Gen-Ago 2026 (8M)</div></div>', unsafe_allow_html=True)
         c_f2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#2563eb;">€ {f_26_prev_m:,.2f}</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
         c_f3.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Fatturato 2025</div><div class="kpi-value">€ {f_25_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
         c_f4.markdown(f'<div class="kpi-card"><div class="kpi-title">Totale Fatturato 2024</div><div class="kpi-value">€ {f_24_tot_m:,.2f}</div><div class="kpi-subtitle">12 Mesi Completi</div></div>', unsafe_allow_html=True)
@@ -373,10 +377,10 @@ if sezione == "📈 Dashboard Grafica":
         df_fat_tot = pd.concat([
             df_fat,
             pd.DataFrame([{
-                "Mese": "TOTALE YTD (7M)",
+                "Mese": "TOTALE YTD (8M)",
                 "Fatturato 2026": f_26_tot_m,
                 "Fatturato 2025": tot_f_25,
-                "Fatturato 2024": df_fat["Fatturato 2024"].head(7).sum()
+                "Fatturato 2024": df_fat["Fatturato 2024"].head(8).sum()
             }]),
             pd.DataFrame([{
                 "Mese": "PREVISIONALE 12M 2026",
@@ -618,7 +622,7 @@ if sezione == "📈 Dashboard Grafica":
         mo_24_med = df_media_oraria["Media Oraria 2024"][df_media_oraria["Media Oraria 2024"] > 0].mean()
 
         c_m1, c_m2, c_m3 = st.columns(3)
-        c_m1.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2026</div><div class="kpi-value" style="color:#9333ea;">€ {mo_26_med:,.2f}/h</div><div class="kpi-subtitle">Media Gen-Lug 2026</div></div>', unsafe_allow_html=True)
+        c_m1.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2026</div><div class="kpi-value" style="color:#9333ea;">€ {mo_26_med:,.2f}/h</div><div class="kpi-subtitle">Media Gen-Ago 2026</div></div>', unsafe_allow_html=True)
         c_m2.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2025</div><div class="kpi-value">€ {mo_25_med:,.2f}/h</div><div class="kpi-subtitle">Media Anno 2025</div></div>', unsafe_allow_html=True)
         c_m3.markdown(f'<div class="kpi-card"><div class="kpi-title">Media Oraria 2024</div><div class="kpi-value">€ {mo_24_med:,.2f}/h</div><div class="kpi-subtitle">Media Anno 2024</div></div>', unsafe_allow_html=True)
 
@@ -742,14 +746,14 @@ if sezione == "📈 Dashboard Grafica":
 
     # TAB 7: ANALISI CLIENTI
     with t7:
-        st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Lug 2026)")
+        st.subheader("🍕 Analisi e Classifica Fatturato Clienti (Gen-Ago 2026)")
 
         col_p1, col_p2 = st.columns([1.1, 1])
 
         with col_p1:
             fig_pie = px.pie(
                 df_clienti_2026,
-                values="Fatturato 2026 (Gen-Lug) (€)",
+                values="Fatturato 2026 (Gen-Ago) (€)",
                 names="Cliente",
                 hole=0.4,
                 color_discrete_sequence=px.colors.qualitative.Set3,
@@ -775,13 +779,13 @@ if sezione == "📈 Dashboard Grafica":
 
         with col_p2:
             st.markdown("#### 🏆 Tabella Riepilogativa Clienti")
-            df_cli_s = df_clienti_2026.sort_values(by="Fatturato 2026 (Gen-Lug) (€)", ascending=False).reset_index(drop=True)
-            tot_cli = df_cli_s["Fatturato 2026 (Gen-Lug) (€)"].sum()
-            df_cli_s["% Quota"] = (df_cli_s["Fatturato 2026 (Gen-Lug) (€)"] / tot_cli * 100).round(2)
+            df_cli_s = df_clienti_2026.sort_values(by="Fatturato 2026 (Gen-Ago) (€)", ascending=False).reset_index(drop=True)
+            tot_cli = df_cli_s["Fatturato 2026 (Gen-Ago) (€)"].sum()
+            df_cli_s["% Quota"] = (df_cli_s["Fatturato 2026 (Gen-Ago) (€)"] / tot_cli * 100).round(2)
 
             df_tot_riga = pd.DataFrame([{
                 "Cliente": "TOTALE FATTURATO",
-                "Fatturato 2026 (Gen-Lug) (€)": tot_cli,
+                "Fatturato 2026 (Gen-Ago) (€)": tot_cli,
                 "Num Fatture": df_cli_s["Num Fatture"].sum(),
                 "% Quota": 100.00
             }])
@@ -789,7 +793,7 @@ if sezione == "📈 Dashboard Grafica":
 
             event_cli = st.dataframe(
                 df_cli_completo.style.apply(evidenzia_totale, col_chiave="Cliente", axis=1).format({
-                    "Fatturato 2026 (Gen-Lug) (€)": "€ {:,.2f}",
+                    "Fatturato 2026 (Gen-Ago) (€)": "€ {:,.2f}",
                     "% Quota": "{:.2f} %"
                 }),
                 use_container_width=True,
@@ -822,23 +826,23 @@ if sezione == "📈 Dashboard Grafica":
         tot_2026 = sum(dati_clienti_mensili[cli_scelto]["2026"])
         tot_2025 = sum(dati_clienti_mensili[cli_scelto]["2025"])
         tot_2024 = sum(dati_clienti_mensili[cli_scelto]["2024"])
-        prev_2026_cli = (tot_2026 / 7) * 12
+        prev_2026_cli = (tot_2026 / 8) * 12
 
         c_cli1, c_cli2, c_cli3, c_cli4 = st.columns(4)
-        c_cli1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2026 YTD</div><div class="kpi-value">€ {tot_2026:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_cli1.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2026 YTD</div><div class="kpi-value">€ {tot_2026:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Ago)</div></div>', unsafe_allow_html=True)
         c_cli2.markdown(f'<div class="kpi-card"><div class="kpi-title">Previsionale 12M 2026</div><div class="kpi-value" style="color:#d9232a;">€ {prev_2026_cli:,.2f}</div><div class="kpi-subtitle">Proiezione su 12 Mesi</div></div>', unsafe_allow_html=True)
-        c_cli3.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2025 YTD</div><div class="kpi-value">€ {tot_2025:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
-        c_cli4.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2024 YTD</div><div class="kpi-value">€ {tot_2024:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Lug)</div></div>', unsafe_allow_html=True)
+        c_cli3.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2025 YTD</div><div class="kpi-value">€ {tot_2025:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Ago)</div></div>', unsafe_allow_html=True)
+        c_cli4.markdown(f'<div class="kpi-card"><div class="kpi-title">Fatturato 2024 YTD</div><div class="kpi-value">€ {tot_2024:,.2f}</div><div class="kpi-subtitle">{cli_scelto} (Gen-Ago)</div></div>', unsafe_allow_html=True)
 
         df_cli_m = pd.DataFrame({
-            "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug"],
+            "Mese": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago"],
             "2026 (€)": dati_clienti_mensili[cli_scelto]["2026"],
             "2025 (€)": dati_clienti_mensili[cli_scelto]["2025"],
             "2024 (€)": dati_clienti_mensili[cli_scelto]["2024"],
         })
 
         df_tot_cliente = pd.DataFrame([{
-            "Mese": "TOTALE YTD (7M)",
+            "Mese": "TOTALE YTD (8M)",
             "2026 (€)": tot_2026,
             "2025 (€)": tot_2025,
             "2024 (€)": tot_2024
